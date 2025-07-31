@@ -7,7 +7,7 @@ Xome ("Zome") lets you build project-specific homes for nix that are reproducibl
 
 ### 1. Super Simple Home
 
-If you already use flakes and tools like flake-utils, you'll probably want to skip to the next example.
+Skip to the next example if you already use flakes and tools like flake-utils.
 
 Make a flake.nix in your project:
 
