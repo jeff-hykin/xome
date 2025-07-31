@@ -19,8 +19,10 @@ Make a flake.nix in your project:
         xome.url = "github:jeff-hykin/xome";
     };
     outputs = { self, nixpkgs, xome, ... }:
-        xome.superSimpleMakeHome { inherit nixpkgs; } ({pkgs, ...}:
+        xome.superSimpleMakeHome { inherit nixpkgs; pure = true; } ({pkgs, ...}:
             {
+                # for home-manager examples, see: https://deepwiki.com/nix-community/home-manager/5-configuration-examples
+                # all home-manager options: https://nix-community.github.io/home-manager/options.xhtml
                 home.homeDirectory = "/tmp/virtual_homes/xome_simple";
                 home.stateVersion = "25.11";
                 home.packages = [
@@ -123,7 +125,12 @@ You can add Xome like this:
                     packages = { /* your normal stuff */ };
                     devShells = xome.simpleMakeHomeFor {
                         inherit pkgs;
+                        pure = true;
                         homeModule = {
+                            # for home-manager examples, see: 
+                            # https://deepwiki.com/nix-community/home-manager/5-configuration-examples
+                            # all home-manager options: 
+                            # https://nix-community.github.io/home-manager/options.xhtml
                             home.homeDirectory = "/tmp/virtual_homes/xome_simple";
                             home.stateVersion = "25.11";
                             home.packages = [
@@ -206,7 +213,8 @@ If you want absolute control, this is the flake template for you:
                 {
                     packages = { /* your normal flake stuff*/ };
                     devShells = xome.makeHomeFor {
-                        envPassthrough = [ "NIX_SSL_CERT_FILE" "TERM" ]; 
+                        pure = true;
+                        envPassthrough = [ "NIX_SSL_CERT_FILE" "TERM" ];
                         # ^this is the default list. Could add HISTSIZE, EDITOR, etc without loosing much purity
                         home = (home-manager.lib.homeManagerConfiguration
                              {

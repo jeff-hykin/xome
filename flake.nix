@@ -11,7 +11,7 @@
         let
             lib = libSource.lib;
             defaultEnvPassthrough = [ "NIX_SSL_CERT_FILE" "TERM" ];
-            makeHomeFor = ({ overrideShell ? null, home, envPassthrough ? defaultEnvPassthrough, ... }@args:
+            makeHomeFor = ({ overrideShell ? null, home, pure ? true, envPassthrough ? defaultEnvPassthrough, ... }@args:
                 let 
                     pkgs = home.pkgs;
                     shellPackageNameProbably = (
@@ -38,6 +38,13 @@
                     homePath = home.config.home.homeDirectory;
                     envPassthroughFiltered = builtins.filter (envVar: envVar != "PATH" && envVar != "HOME" && envVar != "SHELL") envPassthrough;
                     envPassthroughString = lib.concatStringsSep " " (builtins.map (envVar: lib.escapeShellArg envVar + ''="$'' + envVar + ''"'') envPassthroughFiltered);
+                    
+                    mainCommand = (
+                        if (pure) then
+                            ''env -i XOME_ACTIVE=1 PATH=${lib.escapeShellArg homePath}/bin:${lib.escapeShellArg homePath}/.nix-profile/bin HOME=${lib.escapeShellArg homePath} SHELL=${lib.escapeShellArg (builtins.elemAt shellCommandList 0)} ${envPassthroughString} ${shellCommandString}''
+                        else
+                            ''XOME_ACTIVE=1 PATH=${lib.escapeShellArg homePath}/bin:${lib.escapeShellArg homePath}/.nix-profile/bin:"$PATH" HOME=${lib.escapeShellArg homePath} SHELL=${lib.escapeShellArg (builtins.elemAt shellCommandList 0)} ${shellCommandString}''
+                    );
                 in 
                     {
                         default = pkgs.mkShell {
@@ -48,16 +55,17 @@
                                 mkdir -p "$HOME/.local/state/nix/profiles"
                                 # note: the grep is to remove common startup noise
                                 USER="default" HOME=${lib.escapeShellArg homePath} ${home.activationPackage.out}/activate 2>&1 | ${pkgs.gnugrep}/bin/grep -v -E "Starting Home Manager activation|warning: unknown experimental feature 'repl-flake'|Activating checkFilesChanged|Activating checkLinkTargets|Activating writeBoundary|No change so reusing latest profile generation|Activating installPackages|warning: unknown experimental feature 'repl-flake'|replacing old 'home-manager-path'|installing 'home-manager-path'|Activating linkGeneration|Cleaning up orphan links from .*|Creating home file links in .*|Activating onFilesChange|Activating setupLaunchAgents"
-                                env -i XOME_ACTIVE=1 PATH=${lib.escapeShellArg homePath}/bin:${lib.escapeShellArg homePath}/.nix-profile/bin HOME=${lib.escapeShellArg homePath} SHELL=${lib.escapeShellArg (builtins.elemAt shellCommandList 0)} ${envPassthroughString} ${shellCommandString}
+                                ${mainCommand}
                                 exit $?
                             '';
                         };
                     }
             );
-            simpleMakeHomeFor = ({ pkgs, overrideShell ? null, envPassthrough ? defaultEnvPassthrough, homeModule, ... }:
+            simpleMakeHomeFor = ({ pkgs, overrideShell ? null, pure ? true, envPassthrough ? defaultEnvPassthrough, homeModule, ... }:
                 makeHomeFor {
                     envPassthrough = envPassthrough;
                     overrideShell = overrideShell;
+                    pure = pure;
                     home = (
                         let
                             setupModule = homeModule // {
@@ -83,7 +91,7 @@
             {
                 makeHomeFor = makeHomeFor;
                 simpleMakeHomeFor = simpleMakeHomeFor;
-                superSimpleMakeHome = {nixpkgs, overrideShell ? null, envPassthrough ? defaultEnvPassthrough}: homeConfigFunc: (flake-utils.lib.eachSystem
+                superSimpleMakeHome = {nixpkgs, overrideShell ? null, pure ? true, envPassthrough ? defaultEnvPassthrough}: homeConfigFunc: (flake-utils.lib.eachSystem
                     flake-utils.lib.allSystems
                     (system:
                         {
@@ -91,6 +99,7 @@
                                 pkgs = nixpkgs.legacyPackages.${system}; 
                                 envPassthrough = envPassthrough; 
                                 overrideShell = overrideShell;
+                                pure = pure;
                                 homeModule = (homeConfigFunc
                                     {
                                         inherit system;
