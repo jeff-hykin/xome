@@ -2,11 +2,9 @@
 
 # Xome
 
-Xome ("Zome") lets you build project-specific homes using nix that are reproducible and shared with a team. 
+Xome ("Zome") brings the power of Nix's [home-manager](https://github.com/nix-community/home-manager) to projects -- build project-specific homes that are shared with a team and reproducible.
 
 ## Example Usage
-
-
 
 ### 1. Super Simple Home
 
