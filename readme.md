@@ -1,15 +1,18 @@
+![icon](https://github.com/user-attachments/assets/29706f81-b322-4026-b2af-18146272cb73)
+
 # Xome
 
-Xome ("Zome") lets you build project-specific homes for nix that are reproducible and shared with a team. 
+Xome ("Zome") lets you build project-specific homes using nix that are reproducible and shared with a team. 
 
 ## Example Usage
+
 
 
 ### 1. Super Simple Home
 
 Skip to the next example if you already use flakes and tools like flake-utils.
 
-Make a flake.nix in your project:
+Make a `flake.nix` in the root of your project:
 
 ```nix
 {
@@ -80,7 +83,7 @@ Make a flake.nix in your project:
 }
 ```
 
-Then run `nix develop` and you'll enter an isolated nicely configured home.
+After that, run `nix develop` and you'll enter an isolated nicely configured home.
 
 ### 2. Simple Home
 
