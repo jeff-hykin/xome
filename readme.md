@@ -19,7 +19,7 @@ Make a flake.nix in your project:
         xome.url = "github:jeff-hykin/xome";
     };
     outputs = { self, nixpkgs, xome, ... }:
-        xome.superSimpleMakeHome nixpkgs ({pkgs, ...}:
+        xome.superSimpleMakeHome { inherit nixpkgs; } ({pkgs, ...}:
             {
                 home.homeDirectory = "/tmp/virtual_homes/xome_simple";
                 home.stateVersion = "25.11";
@@ -78,8 +78,7 @@ Make a flake.nix in your project:
 }
 ```
 
-Then run `HOME="$PWD" nix develop` and you'll enter an isolated nicely configured home.
-NOTE: despite how it looks, the PWD is not being used as home. Its just a way to avoid your normal bashrc/zshrc/etc long enough for Xome to get a chance to properly setup home without inheriting your shell's environment.
+Then run `nix develop` and you'll enter an isolated nicely configured home.
 
 ### 2. Simple Home
 
@@ -99,7 +98,7 @@ If you use flake utils you probably have something like this:
         in
             flake-utils.lib.eachDefaultSystem (system:
                 {
-                    packages = [ /* your stuff */ ];
+                    packages = { /* your normal stuff */ };
                 }
             );
 }
@@ -121,7 +120,7 @@ You can add Xome like this:
                 pkgs = nixpkgs.legacyPackages.${system};
             in
                 {
-                    packages = [ /* */ ];
+                    packages = { /* your normal stuff */ };
                     devShells = xome.simpleMakeHomeFor {
                         inherit pkgs;
                         homeModule = {
@@ -177,7 +176,7 @@ You can add Xome like this:
                                     enableZshIntegration = true;
                                 };
                             };
-                        } 
+                        }; 
                     };
                 }
         );

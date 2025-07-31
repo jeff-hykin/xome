@@ -83,11 +83,21 @@
             {
                 makeHomeFor = makeHomeFor;
                 simpleMakeHomeFor = simpleMakeHomeFor;
-                superSimpleMakeHome = nixpkgs: homeConfigFunc: (flake-utils.lib.eachSystem
+                superSimpleMakeHome = {nixpkgs, overrideShell ? null, envPassthrough ? defaultEnvPassthrough}: homeConfigFunc: (flake-utils.lib.eachSystem
                     flake-utils.lib.allSystems
                     (system:
                         {
-                            devShells = simpleMakeHomeFor { inherit system nixpkgs; };
+                            devShells = simpleMakeHomeFor {
+                                pkgs = nixpkgs.legacyPackages.${system}; 
+                                envPassthrough = envPassthrough; 
+                                overrideShell = overrideShell;
+                                homeModule = (homeConfigFunc
+                                    {
+                                        inherit system;
+                                        pkgs = nixpkgs.legacyPackages.${system};
+                                    }
+                                );
+                            };
                         }
                     )
                 );
