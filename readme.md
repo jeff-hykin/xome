@@ -1,7 +1,5 @@
 ![icon](https://github.com/user-attachments/assets/29706f81-b322-4026-b2af-18146272cb73)
 
-# Xome
-
 Xome ("Zome") brings the power of Nix's [home-manager](https://github.com/nix-community/home-manager) to projects -- build project-specific homes that are shared with a team and reproducible.
 
 ## Example Usage
