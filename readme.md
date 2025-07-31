@@ -192,19 +192,19 @@ If you want absolute control, this is the flake template for you:
 {
     description = "My Project";
     inputs = {
-        libSource.url = "github:divnix/nixpkgs.lib";
         flake-utils.url = "github:numtide/flake-utils";
         nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
         home-manager.url = "github:nix-community/home-manager";
         home-manager.inputs.nixpkgs.follows = "nixpkgs";
+        xome.url = "github:jeff-hykin/xome";
     };
-    outputs = { self, nixpkgs, flake-utils, xome, ... }:
+    outputs = { self, nixpkgs, flake-utils, home-manager, xome, ... }:
         flake-utils.lib.eachDefaultSystem (system:
             let
                 pkgs = nixpkgs.legacyPackages.${system};
             in
                 {
-                    packages = [ /* */ ];
+                    packages = { /* your normal flake stuff*/ };
                     devShells = xome.makeHomeFor {
                         envPassthrough = [ "NIX_SSL_CERT_FILE" "TERM" ]; 
                         # ^this is the default list. Could add HISTSIZE, EDITOR, etc without loosing much purity
@@ -267,7 +267,7 @@ If you want absolute control, this is the flake template for you:
                                             };
                                         };
                                     }
-                                ]
+                                ];
                              }
                         );
                     };
