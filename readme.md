@@ -1,8 +1,10 @@
 ![icon](https://github.com/user-attachments/assets/29706f81-b322-4026-b2af-18146272cb73)
 
-Xome ("Zome") brings the power of Nix's [home-manager](https://github.com/nix-community/home-manager) to projects -- meaning customized team-shared reproducible project-specific shell enviornments.
+Xome ("Zome") brings the power of Nix's [home-manager](https://github.com/nix-community/home-manager) to projects -- meaning fancy customized team-shared reproducible shell enviornments.
 
 ## Example Usage
+
+For simplicity these examples are all inlined (single file), but pro-tip: put your basic home config in its own git repo then import and modify it!
 
 ### 1. Super Simple Home
 
@@ -29,7 +31,7 @@ Make a `flake.nix` in the root of your project:
                     pkgs.nix
                     pkgs.coreutils-full
                     
-                    # optional stuff
+                    # optional stuff (things you probably want)
                     pkgs.gnugrep
                     pkgs.findutils
                     pkgs.wget
@@ -69,6 +71,7 @@ Make a `flake.nix` in the root of your project:
                             export PATH="$PATH:/usr/bin/"
                         '';
                     };
+                    // fancy prompt
                     starship = {
                         enable = true;
                         enableZshIntegration = true;
@@ -79,7 +82,7 @@ Make a `flake.nix` in the root of your project:
 }
 ```
 
-After that, run `nix develop` and you'll enter an isolated nicely configured home.
+After that, just run `nix develop` in the same directory and you'll have a fancy terminal with all the tools you specified!
 
 ### 2. Simple Home
 
