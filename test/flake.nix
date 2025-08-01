@@ -56,7 +56,7 @@
                         # this is kinda like .zshrc
                         initContent = ''
                             # this enables some impure stuff like sudo, comment it out to get FULL purity
-                            export PATH="$PATH:/usr/bin/"
+                            #export PATH="$PATH:/usr/bin/"
                         '';
                     };
                     # fancy prompt
