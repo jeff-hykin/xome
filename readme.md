@@ -16,8 +16,11 @@ Make a `flake.nix` in the root of your project:
 {
     description = "My Project";
     inputs = {
-        nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+        nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
+        home-manager.url = "github:nix-community/home-manager/release-25.05";
+        home-manager.inputs.nixpkgs.follows = "nixpkgs";
         xome.url = "github:jeff-hykin/xome";
+        xome.inputs.home-manager.follows = "home-manager";
     };
     outputs = { self, nixpkgs, xome, ... }:
         xome.superSimpleMakeHome { inherit nixpkgs; pure = true; } ({pkgs, ...}:
@@ -25,7 +28,7 @@ Make a `flake.nix` in the root of your project:
                 # for home-manager examples, see: https://deepwiki.com/nix-community/home-manager/5-configuration-examples
                 # all home-manager options: https://nix-community.github.io/home-manager/options.xhtml
                 home.homeDirectory = "/tmp/virtual_homes/xome_simple";
-                home.stateVersion = "25.11";
+                home.stateVersion = "25.05";
                 home.packages = [
                     # vital stuff
                     pkgs.nix
@@ -280,6 +283,137 @@ If you want absolute control, this is the flake template for you:
                                 ];
                              }
                         );
+                    };
+                }
+        );
+}
+```
+
+## How can I do _ ?
+
+### 1. How can I change `home.stateVersion`
+
+If you end up with a big error like:
+
+```
+trace: warning: You are using
+
+  Home Manager version 25.11 and
+  Nixpkgs version 25.05.
+
+Using mismatched versions is likely to cause errors and unexpected
+behavior. It is therefore highly recommended to use a release of Home
+Manager that corresponds with your chosen release of Nixpkgs.
+
+If you insist then you can disable this warning by adding
+
+  home.enableNixpkgsReleaseCheck = false;
+
+to your configuration.
+```
+
+The fix is that we need to change the version of `home-manager` itself (not nixpkgs). E.g. do this:
+
+All three of the following "THIS NUMBER" need to match:
+
+```nix
+{
+    description = "My Project";
+    inputs = {
+        nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05"; # <- THIS number and
+        home-manager.url = "github:nix-community/home-manager/release-25.05"; # <- THIS number and (below)
+        home-manager.inputs.nixpkgs.follows = "nixpkgs";
+        xome.url = "github:jeff-hykin/xome";
+        xome.inputs.home-manager.follows = "home-manager";
+    };
+    outputs = { self, nixpkgs, xome, ... }:
+        xome.superSimpleMakeHome { inherit nixpkgs; pure = true; } ({pkgs, ...}:
+            {
+                /* stuff */
+                home.stateVersion = "25.05"; # <- THIS number
+                /* stuff */
+            }
+}
+```
+
+
+### 2. How can I use nushell / fish / custom shell
+
+```nix
+{
+    description = "My Project";
+    inputs = {
+        nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
+        home-manager.url = "github:nix-community/home-manager/release-25.05";
+        home-manager.inputs.nixpkgs.follows = "nixpkgs";
+        xome.url = "github:jeff-hykin/xome";
+        xome.inputs.home-manager.follows = "home-manager";
+    };
+    outputs = { self, nixpkgs, xome, ... }:
+        (xome.superSimpleMakeHome
+            {
+                # add support for whatever shell you want, pkgs will be from the nixpkgs given below
+                overrideShell = pkgs: [ "''${pkgs.fish}/bin/fish" "--no-globalrcs" ]; 
+                    # NOTE: the --no-globalrcs is zsh specific you'll have to find your shell's equivalent argument
+                inherit nixpkgs; 
+                pure = true; 
+            }
+            {pkgs, ...}:
+                {
+                    # for home-manager examples, see: https://deepwiki.com/nix-community/home-manager/5-configuration-examples
+                    # all home-manager options: https://nix-community.github.io/home-manager/options.xhtml
+                    home.homeDirectory = "/tmp/virtual_homes/xome_simple";
+                    home.stateVersion = "25.05";
+                    home.packages = [
+                        # vital stuff
+                        pkgs.nix
+                        pkgs.coreutils-full
+                        
+                        # optional stuff (things you probably want)
+                        pkgs.gnugrep
+                        pkgs.findutils
+                        pkgs.wget
+                        pkgs.curl
+                        pkgs.unixtools.locale
+                        pkgs.unixtools.more
+                        pkgs.unixtools.ps
+                        pkgs.unixtools.getopt
+                        pkgs.unixtools.ifconfig
+                        pkgs.unixtools.hostname
+                        pkgs.unixtools.ping
+                        pkgs.unixtools.hexdump
+                        pkgs.unixtools.killall
+                        pkgs.unixtools.mount
+                        pkgs.unixtools.sysctl
+                        pkgs.unixtools.top
+                        pkgs.unixtools.umount
+                        pkgs.git
+                        pkgs.htop
+                        pkgs.ripgrep
+                    ];
+                    
+                    programs = {
+                        home-manager = {
+                            enable = true;
+                        };
+                        zsh = {
+                            enable = true;
+                            enableCompletion = true;
+                            autosuggestion.enable = true;
+                            syntaxHighlighting.enable = true;
+                            shellAliases.ll = "ls -la";
+                            history.size = 100000;
+                            # this is kinda like .zshrc
+                            initContent = ''
+                                # this enables some impure stuff like sudo, comment it out to get FULL purity
+                                export PATH="$PATH:/usr/bin/"
+                            '';
+                        };
+                        // fancy prompt
+                        starship = {
+                            enable = true;
+                            enableZshIntegration = true;
+                        };
                     };
                 }
         );
