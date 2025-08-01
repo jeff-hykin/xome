@@ -74,7 +74,7 @@ Make a `flake.nix` in the root of your project:
                             export PATH="$PATH:/usr/bin/"
                         '';
                     };
-                    // fancy prompt
+                    # fancy prompt
                     starship = {
                         enable = true;
                         enableZshIntegration = true;
@@ -409,7 +409,7 @@ All three of the following "THIS NUMBER" need to match:
                                 export PATH="$PATH:/usr/bin/"
                             '';
                         };
-                        // fancy prompt
+                        # fancy prompt
                         starship = {
                             enable = true;
                             enableZshIntegration = true;
