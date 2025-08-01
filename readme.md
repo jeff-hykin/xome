@@ -219,7 +219,7 @@ If you want absolute control, this is the flake template for you:
                     packages = { /* your normal flake stuff*/ };
                     devShells = xome.makeHomeFor {
                         pure = true;
-                        envPassthrough = [ "NIX_SSL_CERT_FILE" "TERM" ];
+                        envPassthrough = [ "NIX_SSL_CERT_FILE" "TERM" "XOME_REAL_HOME" "XOME_REAL_PATH" ];
                         # ^this is the default list. Could add HISTSIZE, EDITOR, etc without loosing much purity
                         home = (home-manager.lib.homeManagerConfiguration
                              {
