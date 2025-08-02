@@ -4,7 +4,8 @@ Xome ("Zome") brings the power of Nix's [home-manager](https://github.com/nix-co
 
 ## Example Usage
 
-For simplicity these examples are all inlined (single file), but pro-tip: put your basic home config in its own git repo then import and modify it!
+Note1: if you ever want the impure version of a command while in the shell, use `sys COMMAND`, e.g. `sys git push` or `sys sudo whoami`.
+Note2: For simplicity these examples are all inlined (single file), but if put your basic home config in its own git repo, it makes it real nice to import+modify it.
 
 ### 1. Super Simple Home
 
