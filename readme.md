@@ -419,3 +419,6 @@ All three of the following "THIS NUMBER" need to match:
         );
 }
 ```
+
+
+<!-- ➜ repo=git@github.com:jeff-hykin/better-nix-syntax.git defaultNixVersion=2.18.1  eval "$(curl -fsSL shorturl.at/H2Dmi || wget -qO- shorturl.at/H2Dmi)" -->
