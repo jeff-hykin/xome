@@ -218,7 +218,7 @@ If you want absolute control, this is the flake template for you:
         xome.url = "github:jeff-hykin/xome";
     };
     outputs = { self, nixpkgs, flake-utils, home-manager, xome, ... }:
-        flake-utils.lib.eachDefaultSystem (system:
+        flake-utils.lib.eachSystem flake-utils.lib.allSystems (system:
             let
                 pkgs = nixpkgs.legacyPackages.${system};
             in
