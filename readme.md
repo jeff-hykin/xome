@@ -5,7 +5,7 @@ Xome ("Zome") brings the power of Nix's [home-manager](https://github.com/nix-co
 ## Example Usage
 
 - Note 1: `sys COMMAND`
-  - If you need sudo, or git push, or any other command that you WANT to be impure, use `sys THAT_COMMAND`. Ex: `sys sudo chmod +x` or `sys git push`, or `sys nvim`. Xome is pure-by-defualt, but tries to stay convenient/practical. (Stay tuned for more convenience, feature requests welcome!) 
+  - If you need `sudo`, or `git push`, or any other command that you WANT to be impure, use `sys THAT_COMMAND`. Ex: `sys sudo chmod +x` or `sys git push`, or `sys nvim`. Xome is pure-by-defualt, but tries to stay convenient/practical. (Stay tuned for more convenience, feature requests welcome!) 
 - Note 2: Picking a home directory
   - Using `/tmp/somewhere/your_proj_name` is fine, but (if it works for your team) a more permanent path will help with startup time/caching. Sidenote, I'm working on a way to support relative paths.
 - Note 3: Bulky Configs
