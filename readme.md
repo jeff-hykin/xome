@@ -4,12 +4,18 @@ Xome ("Zome") brings the power of Nix's [home-manager](https://github.com/nix-co
 
 ## Example Usage
 
-Note1: if you ever want the impure version of a command while in the shell, use `sys COMMAND`, e.g. `sys git push` or `sys sudo whoami`.
-Note2: For simplicity these examples are all inlined (single file), but if put your basic home config in its own git repo, it makes it real nice to import+modify it.
+- Note 1: `sys COMMAND`
+  - If you need sudo, or git push, or any other command that you WANT to be impure, use `sys THAT_COMMAND`. Ex: `sys sudo chmod +x` or `sys git push`, or `sys nvim`. Xome is pure-by-defualt, but tries to stay convenient/practical. (Stay tuned for more convenience, feature requests welcome!) 
+- Note 2: Picking a home directory
+  - Using `/tmp/somewhere/your_proj_name` is fine, but (if it works for your team) a more permanent path will help with startup time/caching. Sidenote, I'm working on a way to support relative paths.
+- Note 3: Bulky Configs
+  - Examples below are big and fully inlined for clarity (one file), but pro-tip: yours can be much more sleek! Make a nice big home config for yourself (nu shell, colors, aliases, essential packages, etc), put it in a git repo somewhere, then import your home config as a starter kit for the project.
+  - I'll probably add an example of this using home-modules at some point.
+  - I'm considering adding mutilple profiles (e.g. someone on the team likes zsh and another person likes fish). Open an issue if you want that feature. 
 
 ### 1. Super Simple Home
 
-Skip to the next example if you already use flakes and tools like flake-utils.
+Skip to the next example if you use `flake-utils`.
 
 Make a `flake.nix` in the root of your project:
 
