@@ -396,6 +396,10 @@ All three of the following "THIS NUMBER" need to match:
 
 <!--
 todo
+- example + better support for home modules
+- make it easy to symlink stuff like deno cache, nixpkgs cache, and .ssh.
 - maybe have a fallback sudo command that says "run sys sudo" 
+- explain more about Env pass through and pure = false option.
+- have home modules for stuff like ruby, npm, Python venv etc that include printouts for instructions (gem file, requirements.txt, etc)
 
 ➜ repo=git@github.com:jeff-hykin/better-nix-syntax.git defaultNixVersion=2.18.1  eval "$(curl -fsSL shorturl.at/H2Dmi || wget -qO- shorturl.at/H2Dmi)" -->
