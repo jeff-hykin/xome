@@ -202,7 +202,7 @@ You can add Xome like this:
 }
 ```
 
-### 3. Fully Configured Home 
+### 3. Fully Manual Configuration
 
 If you want absolute control, this is the flake template for you:
 
