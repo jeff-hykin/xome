@@ -50,6 +50,10 @@
                         default = pkgs.mkShell {
                             packages = home.config.home.packages;
                             shellHook = ''
+                                if [ -n "$XOME_INFER_REAL_PATH" ]
+                                then
+                                    echo "$PATH"
+                                fi
                                 export XOME_REAL_PATH="$PATH"
                                 export XOME_REAL_HOME="$HOME"
                                 export HOME=${lib.escapeShellArg homePath}
