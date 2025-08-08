@@ -57,6 +57,7 @@
                                     print '%s' "$PATH"
                                     exit
                                 elif [ -n "$XOME_INFER_REAL_PATH_DEBUG" ]
+                                then
                                     what_is_added_to_path_full="$(XOME_INFER_REAL_PATH=true USER=$XOME_REAL_USER PATH="/usr/local/bin:/usr/bin:/bin" ${pkgs.nix}/bin/nix develop 2>/dev/null)"
                                     what_is_added_to_path="$(XOME_INFER_REAL_PATH=true USER=$XOME_REAL_USER PATH="/usr/local/bin:/usr/bin:/bin" ${pkgs.nix}/bin/nix develop 2>/dev/null | ${pkgs.coreutils}/bin/tail -n 1)"
                                     length="''${#what_is_added_to_path}"
