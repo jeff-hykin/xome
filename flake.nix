@@ -50,35 +50,18 @@
                         default = pkgs.mkShell {
                             packages = home.config.home.packages;
                             shellHook = ''
-                                if [ -n "$XOME_INFER_REAL_PATH" ]
-                                then
-                                    print '%s' "XOME_PATH_START"
-                                    echo
-                                    print '%s' "$PATH"
-                                    exit
-                                elif [ -n "$XOME_INFER_REAL_PATH_DEBUG" ]
-                                then
-                                    what_is_added_to_path_full="$(XOME_INFER_REAL_PATH_DEBUG="" XOME_INFER_REAL_PATH=true USER=$XOME_REAL_USER PATH="/usr/local/bin:/usr/bin:/bin" ${pkgs.nix}/bin/nix develop 2>/dev/null)"
-                                    what_is_added_to_path="$(XOME_INFER_REAL_PATH_DEBUG="" XOME_INFER_REAL_PATH=true USER=$XOME_REAL_USER PATH="/usr/local/bin:/usr/bin:/bin" ${pkgs.nix}/bin/nix develop 2>/dev/null | ${pkgs.coreutils}/bin/tail -n 1)"
-                                    length="''${#what_is_added_to_path}"
-                                    path_minus_nix_junk="''${PATH:$length}"
-                                    echo 'what_is_added_to_path_full: '"$what_is_added_to_path_full"
-                                    echo 'what_is_added_to_path: '"$what_is_added_to_path"
-                                    echo 'path_minus_nix_junk: '"$path_minus_nix_junk"
-                                else
-                                    export XOME_REAL_USER="$USER"
-                                    export XOME_REAL_PATH="$PATH"
-                                    export XOME_REAL_HOME="$HOME"
-                                    export HOME=${lib.escapeShellArg homePath}
-                                    mkdir -p "$HOME/.local/state/nix/profiles"
-                                    mkdir -p "$HOME/.local/bin"
-                                    echo 'PATH="$XOME_REAL_PATH" HOME="$XOME_REAL_HOME" "$@"' > "$HOME/.local/bin/sys"
-                                    chmod +x "$HOME/.local/bin/sys"
-                                    # note: the grep is to remove common startup noise
-                                    USER="default" HOME=${lib.escapeShellArg homePath} ${home.activationPackage.out}/activate 2>&1 | ${pkgs.gnugrep}/bin/grep -v -E "Starting Home Manager activation|warning: unknown experimental feature 'repl-flake'|Activating checkFilesChanged|Activating checkLinkTargets|Activating writeBoundary|No change so reusing latest profile generation|Activating installPackages|warning: unknown experimental feature 'repl-flake'|replacing old 'home-manager-path'|installing 'home-manager-path'|Activating linkGeneration|Cleaning up orphan links from .*|Creating home file links in .*|Activating onFilesChange|Activating setupLaunchAgents"
-                                    ${mainCommand}
-                                    exit $?
-                                fi
+                                export XOME_REAL_USER="$USER"
+                                export XOME_REAL_PATH="$PATH"
+                                export XOME_REAL_HOME="$HOME"
+                                export HOME=${lib.escapeShellArg homePath}
+                                mkdir -p "$HOME/.local/state/nix/profiles"
+                                mkdir -p "$HOME/.local/bin"
+                                echo 'PATH="$XOME_REAL_PATH" HOME="$XOME_REAL_HOME" "$@"' > "$HOME/.local/bin/sys"
+                                chmod +x "$HOME/.local/bin/sys"
+                                # note: the grep is to remove common startup noise
+                                USER="default" HOME=${lib.escapeShellArg homePath} ${home.activationPackage.out}/activate 2>&1 | ${pkgs.gnugrep}/bin/grep -v -E "Starting Home Manager activation|warning: unknown experimental feature 'repl-flake'|Activating checkFilesChanged|Activating checkLinkTargets|Activating writeBoundary|No change so reusing latest profile generation|Activating installPackages|warning: unknown experimental feature 'repl-flake'|replacing old 'home-manager-path'|installing 'home-manager-path'|Activating linkGeneration|Cleaning up orphan links from .*|Creating home file links in .*|Activating onFilesChange|Activating setupLaunchAgents"
+                                ${mainCommand}
+                                exit $?
                             '';
                         };
                     }
