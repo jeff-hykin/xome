@@ -41,9 +41,9 @@
                     
                     mainCommand = (
                         if (pure) then
-                            ''env -i XOME_ACTIVE=1 PATH=${lib.escapeShellArg homePath}/.local/bin:${lib.escapeShellArg homePath}/bin:${lib.escapeShellArg homePath}/.nix-profile/bin HOME=${lib.escapeShellArg homePath} SHELL=${lib.escapeShellArg (builtins.elemAt shellCommandList 0)} ${envPassthroughString} ${shellCommandString}''
+                            ''env -i XOME_ACTIVE=1 PATH=${lib.escapeShellArg "${pkgs.nix}/bin/"}:${lib.escapeShellArg homePath}/.local/bin:${lib.escapeShellArg homePath}/bin:${lib.escapeShellArg homePath}/.nix-profile/bin HOME=${lib.escapeShellArg homePath} SHELL=${lib.escapeShellArg (builtins.elemAt shellCommandList 0)} ${envPassthroughString} ${shellCommandString}''
                         else
-                            ''XOME_ACTIVE=1 PATH=${lib.escapeShellArg homePath}/.local/bin:${lib.escapeShellArg homePath}/bin:${lib.escapeShellArg homePath}/.nix-profile/bin:"$PATH" HOME=${lib.escapeShellArg homePath} SHELL=${lib.escapeShellArg (builtins.elemAt shellCommandList 0)} ${shellCommandString}''
+                            ''XOME_ACTIVE=1 PATH=${lib.escapeShellArg "${pkgs.nix}/bin/"}:${lib.escapeShellArg homePath}/.local/bin:${lib.escapeShellArg homePath}/bin:${lib.escapeShellArg homePath}/.nix-profile/bin:"$PATH" HOME=${lib.escapeShellArg homePath} SHELL=${lib.escapeShellArg (builtins.elemAt shellCommandList 0)} ${shellCommandString}''
                     );
                 in 
                     {
@@ -56,7 +56,10 @@
                                 export HOME=${lib.escapeShellArg homePath}
                                 mkdir -p "$HOME/.local/state/nix/profiles"
                                 mkdir -p "$HOME/.local/bin"
-                                echo 'PATH="$XOME_REAL_PATH" HOME="$XOME_REAL_HOME" "$@"' > "$HOME/.local/bin/sys"
+                                # must hardcode standard paths (missing stuff like /opt/homebrew/bin:/opt/homebrew/sbin:/opt/X11/bin on Mac and stuff like /snap/bin on Ubuntu)
+                                # because XOME_REAL_PATH is already polluted with stuff from the nix flake. Its hard to undo that without making a wrapper around `nix develop`
+                                # we need this prefix because we want `sys THING` to default to the system thing, not the nix flake thing
+                                echo 'PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:"$HOME/.nix-profile/bin":/nix/var/nix/profiles/default/bin/:/nix/var/nix/profiles/per-user/$USER/profile/bin/:$XOME_REAL_PATH" HOME="$XOME_REAL_HOME" "$@"' > "$HOME/.local/bin/sys"
                                 chmod +x "$HOME/.local/bin/sys"
                                 # note: the grep is to remove common startup noise
                                 USER="default" HOME=${lib.escapeShellArg homePath} ${home.activationPackage.out}/activate 2>&1 | ${pkgs.gnugrep}/bin/grep -v -E "Starting Home Manager activation|warning: unknown experimental feature 'repl-flake'|Activating checkFilesChanged|Activating checkLinkTargets|Activating writeBoundary|No change so reusing latest profile generation|Activating installPackages|warning: unknown experimental feature 'repl-flake'|replacing old 'home-manager-path'|installing 'home-manager-path'|Activating linkGeneration|Cleaning up orphan links from .*|Creating home file links in .*|Activating onFilesChange|Activating setupLaunchAgents"

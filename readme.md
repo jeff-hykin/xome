@@ -38,7 +38,6 @@ Make a `flake.nix` in the root of your project:
                 home.stateVersion = "25.05";
                 home.packages = [
                     # vital stuff
-                    pkgs.nix
                     pkgs.coreutils-full
                     
                     # optional stuff (things you probably want)
@@ -147,7 +146,6 @@ You can add Xome like this:
                             home.stateVersion = "25.11";
                             home.packages = [
                                 # vital stuff
-                                pkgs.nix
                                 pkgs.coreutils-full
                                 
                                 # optional stuff
@@ -238,7 +236,6 @@ If you want absolute control, this is the flake template for you:
                                         home.stateVersion = "25.11";
                                         home.packages = [
                                             # vital stuff
-                                            pkgs.nix
                                             pkgs.coreutils-full
                                             
                                             # optional stuff
@@ -373,7 +370,6 @@ All three of the following "THIS NUMBER" need to match:
                     home.stateVersion = "25.05";
                     home.packages = [
                         # vital stuff
-                        pkgs.nix
                         pkgs.coreutils-full
                     ];
                     
