@@ -142,7 +142,7 @@ You can add Xome like this:
                             # https://deepwiki.com/nix-community/home-manager/5-configuration-examples
                             # all home-manager options: 
                             # https://nix-community.github.io/home-manager/options.xhtml
-                            home.homeDirectory = "/tmp/virtual_homes/xome_simple";
+                            home.homeDirectory = "/tmp/virtual_homes/your_proj_name1";
                             home.stateVersion = "25.11";
                             home.packages = [
                                 # vital stuff
@@ -357,7 +357,7 @@ All three of the following "THIS NUMBER" need to match:
         (xome.superSimpleMakeHome
             {
                 # add support for whatever shell you want, pkgs will be from the nixpkgs given below
-                overrideShell = pkgs: [ "''${pkgs.fish}/bin/fish" "--no-globalrcs" ]; 
+                overrideShell = pkgs: [ "${pkgs.fish}/bin/fish" "--no-globalrcs" ]; 
                     # NOTE: the --no-globalrcs is zsh specific you'll have to find your shell's equivalent argument
                 inherit nixpkgs; 
                 pure = true; 
