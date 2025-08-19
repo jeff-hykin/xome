@@ -5,7 +5,7 @@ Xome ("Zome") brings the power of Nix's [home-manager](https://github.com/nix-co
 ## Example Usage
 
 - Note 1: `sys <COMMAND>`
-  - Xome is pure-by-default, so use `sys` to keep it practial for development. 
+  - Xome is pure-by-default, so use `sys` to stay practial. 
   - ❌ `git push` (no git config found)
   - ✅ `sys git push` (works, uses your real home)
   - ❌ `nvim` (command not found)
