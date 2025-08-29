@@ -4,21 +4,7 @@ Xome ("Zome") brings the power of Nix's [home-manager](https://github.com/nix-co
 
 ## Example Usage
 
-- Note 1: `sys <COMMAND>`
-  - Xome is pure-by-default, so use `sys` to stay practial. 
-  - ❌ `git push` (no git config found)
-  - ✅ `sys git push` (works, uses your real home)
-  - ❌ `nvim` (command not found)
-  - ✅ `sys nvim` (uses your system nvim)
-  - ❌ `sudo chmod +x /dev/thing`
-  - ✅ `sys sudo chmod +x /dev/thing`
-  - (Stay tuned for more convenient features) 
-- Note 2: Picking a home directory
-  - Using `/tmp/somewhere/your_proj_name` like the examples is fine, but (if it works for your team) a more permanent path will help with startup time/caching. Sidenote, I'm working on a way to support relative paths and faster start times.
-- Note 3: Bulky Examples
-  - The examples below are big and fully inlined (one file) for clarity, but pro-tip: yours can be much more sleek! Make a big home config that is exactly how you like (nu shell / fish, colors, aliases, essential packages, etc), put it in a git repo somewhere, then import it as a starter kit for multiple projects. Its really nice to update a home config one place, then `nix flake update` to pull it into each project. 
-  - I'll probably add an example of this using home-modules at some point.
-  - I'm considering adding mutilple profiles (e.g. someone on the team likes zsh and another person likes fish). Open an issue if you want that feature. 
+Grab one of the nix-flakes below and run `nix develop` to see how it works. Read the Notes section to see how to have a good time once its up and running!
 
 ### 1. Super Simple Home
 
@@ -299,6 +285,25 @@ If you want absolute control, this is the flake template for you:
         );
 }
 ```
+
+## Notes! 
+
+- Note 1: `sys <COMMAND>`
+  - Xome is pure-by-default, `sys` helps keep it practial. 
+  - ❌ `git push` (no git config found, cause its a pure env)
+  - ✅ `sys git push` (works, uses your real home)
+  - ❌ `nvim` (command not found)
+  - ✅ `sys nvim` (uses your system nvim)
+  - ❌ `sudo chmod +x /dev/thing`
+  - ✅ `sys sudo chmod +x /dev/thing`
+  - (Stay tuned for more convenient features) 
+- Note 2: Picking a home directory
+  - Using `/tmp/somewhere/your_proj_name` like the examples is fine, but (if it works for your team) a more permanent path will help with startup time/caching. Sidenote, I'm working on a way to support relative paths and faster start times.
+- Note 3: Bulky Examples
+  - The examples below are big and fully inlined (one file) for clarity, but pro-tip: yours can be much more sleek! Make a big home config that is exactly how you like (nu shell / fish, colors, aliases, essential packages, etc), put it in a git repo somewhere, then import it as a starter kit for multiple projects. Its really nice to update a home config one place, then `nix flake update` to pull it into each project. 
+  - I'll probably add an example of this using home-modules at some point.
+  - I'm considering adding mutilple profiles (e.g. someone on the team likes zsh and another person likes fish). Open an issue if you want that feature. 
+
 
 ## How can I do _ ?
 
