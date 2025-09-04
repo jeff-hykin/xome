@@ -39,6 +39,7 @@ Make a `flake.nix` in the root of your project:
                 home.packages = [
                     # vital stuff
                     pkgs.coreutils-full
+                    pkgs.dash # needed to make "sh"
                     
                     # optional stuff (things you probably want)
                     pkgs.gnugrep
@@ -76,6 +77,9 @@ Make a `flake.nix` in the root of your project:
                         history.size = 100000;
                         # this is kinda like .zshrc
                         initContent = ''
+                            # lots of things need "sh"
+                            ln -s "$(which dash)" "$HOME/.local/bin/sh" 2>/dev/null
+                            
                             # this enables some impure stuff like sudo, comment it out to get FULL purity
                             export PATH="$PATH:/usr/bin/"
                         '';
@@ -147,6 +151,7 @@ You can add Xome like this:
                             home.packages = [
                                 # vital stuff
                                 pkgs.coreutils-full
+                                pkgs.dash # needed to make "sh"
                                 
                                 # optional stuff
                                 pkgs.gnugrep
@@ -184,6 +189,9 @@ You can add Xome like this:
                                     history.size = 100000;
                                     # this is kinda like .zshrc
                                     initContent = ''
+                                        # lots of things need "sh"
+                                        ln -s "$(which dash)" "$HOME/.local/bin/sh" 2>/dev/null
+                                        
                                         # this enables some impure stuff like sudo, comment it out to get FULL purity
                                         export PATH="$PATH:/usr/bin/"
                                     '';
@@ -237,6 +245,7 @@ If you want absolute control, this is the flake template for you:
                                         home.packages = [
                                             # vital stuff
                                             pkgs.coreutils-full
+                                            pkgs.dash # needed to make "sh"
                                             
                                             # optional stuff
                                             pkgs.gnugrep
@@ -274,6 +283,9 @@ If you want absolute control, this is the flake template for you:
                                                 history.size = 100000;
                                                 # this is kinda like .zshrc
                                                 initContent = ''
+                                                    # lots of things need "sh"
+                                                    ln -s "$(which dash)" "$HOME/.local/bin/sh" 2>/dev/null
+                                                    
                                                     # this enables some impure stuff like sudo, comment it out to get FULL purity
                                                     export PATH="$PATH:/usr/bin/"
                                                 '';
@@ -371,6 +383,7 @@ All three of the following "THIS NUMBER" need to match:
                     home.packages = [
                         # vital stuff
                         pkgs.coreutils-full
+                        pkgs.dash # needed to make "sh"
                     ];
                     
                     programs = {
