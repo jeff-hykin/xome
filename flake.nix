@@ -56,6 +56,12 @@
                                 export HOME=${lib.escapeShellArg homePath}
                                 mkdir -p "$HOME/.local/state/nix/profiles"
                                 mkdir -p "$HOME/.local/bin"
+                                # share the nix cache with normal/impure home
+                                if [ -d "$XOME_REAL_HOME/.cache/nix/" ]
+                                then
+                                    rm -rf "$HOME/.cache/nix/"
+                                    ln -s "$XOME_REAL_HOME/.cache/nix/" "$HOME/.cache/nix/"
+                                fi
                                 # must hardcode standard paths (missing stuff like /opt/homebrew/bin:/opt/homebrew/sbin:/opt/X11/bin on Mac and stuff like /snap/bin on Ubuntu)
                                 # because XOME_REAL_PATH is already polluted with stuff from the nix flake. Its hard to undo that without making a wrapper around `nix develop`
                                 # we need this prefix because we want `sys THING` to default to the system thing, not the nix flake thing
