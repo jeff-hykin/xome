@@ -41,7 +41,7 @@
                     
                     mainCommand = (
                         if (pure) then
-                            ''env -i XOME_ACTIVE=1 PATH=${lib.escapeShellArg "${pkgs.nix}/bin/"}:${lib.escapeShellArg homePath}/.local/bin:${lib.escapeShellArg homePath}/bin:${lib.escapeShellArg homePath}/.nix-profile/bin HOME=${lib.escapeShellArg homePath} SHELL=${lib.escapeShellArg (builtins.elemAt shellCommandList 0)} ${envPassthroughString} ${shellCommandString}''
+                            ''echo env -i XOME_ACTIVE=1 PATH=${lib.escapeShellArg "${pkgs.nix}/bin/"}:${lib.escapeShellArg homePath}/.local/bin:${lib.escapeShellArg homePath}/bin:${lib.escapeShellArg homePath}/.nix-profile/bin HOME=${lib.escapeShellArg homePath} SHELL=${lib.escapeShellArg (builtins.elemAt shellCommandList 0)} ${envPassthroughString} ${shellCommandString};env -i XOME_ACTIVE=1 PATH=${lib.escapeShellArg "${pkgs.nix}/bin/"}:${lib.escapeShellArg homePath}/.local/bin:${lib.escapeShellArg homePath}/bin:${lib.escapeShellArg homePath}/.nix-profile/bin HOME=${lib.escapeShellArg homePath} SHELL=${lib.escapeShellArg (builtins.elemAt shellCommandList 0)} ${envPassthroughString} ${shellCommandString}''
                         else
                             ''XOME_ACTIVE=1 PATH=${lib.escapeShellArg "${pkgs.nix}/bin/"}:${lib.escapeShellArg homePath}/.local/bin:${lib.escapeShellArg homePath}/bin:${lib.escapeShellArg homePath}/.nix-profile/bin:"$PATH" HOME=${lib.escapeShellArg homePath} SHELL=${lib.escapeShellArg (builtins.elemAt shellCommandList 0)} ${shellCommandString}''
                     );
