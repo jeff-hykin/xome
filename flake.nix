@@ -56,6 +56,7 @@
                                 export HOME=${lib.escapeShellArg homePath}
                                 mkdir -p "$HOME/.local/state/nix/profiles"
                                 mkdir -p "$HOME/.local/bin"
+                                mkdir -p "$HOME/.cache/"
                                 # share the nix cache with normal/impure home
                                 if [ -d "$XOME_REAL_HOME/.cache/nix/" ]
                                 then
