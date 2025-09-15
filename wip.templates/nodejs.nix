@@ -107,6 +107,9 @@
                                         # lots of things need "sh"
                                         ln -s "$(which dash)" "$HOME/.local/bin/sh" 2>/dev/null
                                         
+                                        # without this npm (from nix) will not keep a reliable cache (it'll be outside of the xome home)
+                                        export npm_config_cache="$HOME/.cache/npm"
+                                        
                                         # this enables some impure stuff like sudo, comment it out to get FULL purity
                                         # export PATH="$PATH:/usr/bin/"
                                         echo
