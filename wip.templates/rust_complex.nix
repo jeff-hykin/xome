@@ -1,5 +1,5 @@
 {
-    description = "Render UI with yew";
+    description = "port-kill";
 
     inputs = {
         libSource.url = "github:divnix/nixpkgs.lib";
@@ -10,14 +10,13 @@
         xome.url = "github:jeff-hykin/xome";
         xome.inputs.nixpkgs.follows = "nixpkgs";
         xome.inputs.home-manager.follows = "home-manager";
-        # rustFlake.url = "github:jeff-hykin/rust_flake/v1.89.0";
-        # rustFlake.inputs.nixpkgs.follows = "nixpkgs";
         fenix.url = "github:nix-community/fenix";
         fenix.inputs.nixpkgs.follows = "nixpkgs";
     };
     outputs = { self, flake-utils, nixpkgs, fenix, xome, ... }:
         flake-utils.lib.eachSystem (builtins.attrNames fenix.packages) (system:
             let
+                projectName = "port-kill";
                 pkgs = import nixpkgs {
                     inherit system;
                     overlays = [
@@ -25,7 +24,7 @@
                     ];
                     config = {
                         allowUnfree = true;
-                        allowInsecure = true;
+                        allowInsecure = false;
                         permittedInsecurePackages = [
                         ];
                     };
@@ -35,43 +34,110 @@
                     pkgs.fenix.stable.cargo
                     pkgs.fenix.stable.clippy
                     pkgs.fenix.stable.rustfmt
-                    pkgs.fenix.targets.wasm32-unknown-unknown.stable.rust-std
-                    # pkgs.fenix.targets.x86_64-unknown-linux-musl.stable.rust-std
                 ];
                 rustPlatform = pkgs.makeRustPlatform {
                     rustc = rustToolchain;
                     cargo = rustToolchain;
                 };
-                nativeBuildInputs = [
-                    pkgs.trunk
-                    pkgs.wasm-bindgen-cli
-                    pkgs.nodePackages.sass
+                commonRuntimeDeps = [
+                    pkgs.lsof
+                ];
+                commonDeps = [
+                    pkgs.libiconv
+                ];
+                macOsOnlyDeps = [
+                    pkgs.clang
+                ];
+                pkgsForPkgConfigTool = [
+                    # given inputs
+                    pkgs.atk.dev
+                    pkgs.gdk-pixbuf.dev
+                    pkgs.gtk3.dev
+                    pkgs.pango.dev
+                    pkgs.libayatana-appindicator-gtk3.dev
+                    pkgs.glib.dev
+                    # discovered needed inputs
+                    pkgs.dbus.dev
+                    pkgs.libpng.dev
+                    pkgs.libjpeg.dev
+                    pkgs.libtiff.dev
+                    pkgs.cairo.dev
+                    pkgs.fribidi.dev
+                    pkgs.fontconfig.dev
+                    pkgs.harfbuzz.dev
+                    pkgs.libthai.dev
+                    pkgs.freetype.dev
+                    pkgs.xorg.libXrender.dev
+                    pkgs.xorg.libXft.dev
+                    pkgs.zlib
+                    pkgs.zlib.dev
+                    pkgs.libffi.dev
+                    pkgs.libselinux.dev
+                    pkgs.expat.dev
+                    pkgs.graphite2.dev
+                    pkgs.bzip2.dev
+                    pkgs.lerc.dev
+                    pkgs.libsepol.dev
+                    # libs not even on the list, but needed at link time 
+                    pkgs.json-glib
+                    pkgs.libselinux
+                    pkgs.wayland
+                    pkgs.libjson
+                    pkgs.tinysparql
+                    pkgs.tinysparql.dev
+                    pkgs.json-glib.dev
+                    pkgs.libselinux.dev
+                    pkgs.wayland.dev
+                ];
+                PKG_CONFIG_PATH = builtins.concatStringsSep ":" (map (x: "${x}/lib/pkgconfig") pkgsForPkgConfigTool);
+                LD_LIBRARY_PATH = builtins.concatStringsSep ":" (map (x: "${x}/lib") pkgsForPkgConfigTool);
+                LIBRARY_PATH = builtins.concatStringsSep ":" (map (x: "${x}/lib") pkgsForPkgConfigTool);
+                linuxOnlyDeps = pkgsForPkgConfigTool ++ [
+                    pkgs.gcc
                     pkgs.pkg-config
                 ];
+                nativeBuildInputs = commonDeps ++ (if pkgs.stdenv.isLinux then linuxOnlyDeps else []);
+                shellHook = ''
+                    export LIBRARY_PATH="$LIBRARY_PATH:${pkgs.libiconv}/lib"
+                    ${if builtins.match ".*linux.*" system != null then
+                        ''
+                        export PKG_CONFIG_PATH="${PKG_CONFIG_PATH}"
+                        export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}"
+                        export LIBRARY_PATH="${LIBRARY_PATH}"
+                        ''
+                    else
+                        ""
+                    }
+                '';
             in
                 {
                     packages.default = rustPlatform.buildRustPackage {
-                        pname = "render-ui";
+                        pname = projectName;
                         version = "0.1.0";
                         src = ./.;
                         
                         nativeBuildInputs = nativeBuildInputs;
+                        buildInputs = commonRuntimeDeps;
 
                         cargoLock = {
                             lockFile = ./Cargo.lock;
                         };
 
                         meta = {
-                            description = "3D render UI with yew";
+                            description = "port-kill";
                         };
                         
-                        buildPhase = "
-                            trunk build
-                            cargo build --release
-                        ";
+                        buildPhase = ''
+                            ${shellHook}
+                            if [ "$OSTYPE" = "linux-gnu" ]; then
+                                sh "$src/build-linux.sh"
+                            else
+                                sh "$src/build-macos.sh"
+                            fi
+                        '';
                         installPhase = ''
-                            cp -r dist $out
-                            # mkdir -p "$out/bin/"
+                            mkdir -p "$out/bin/"
+                            cp ./target/release/port-kill "$out/bin/port-kill"
                             # cp -r ./target/release "$out/bin/"
                         '';
                         XDG_CACHE_HOME = "/tmp/build/cache";
@@ -85,15 +151,15 @@
                             # https://deepwiki.com/nix-community/home-manager/5-configuration-examples
                             # all home-manager options: 
                             # https://nix-community.github.io/home-manager/options.xhtml
-                            home.homeDirectory = "/tmp/virtual_homes/render_ui";
+                            home.homeDirectory = "/tmp/virtual_homes/${projectName}";
                             home.stateVersion = "25.05";
-                            home.packages = nativeBuildInputs ++ [
+                            home.packages = nativeBuildInputs ++ commonRuntimeDeps ++ [
                                 # project stuff
                                 rustToolchain
                                 
                                 # vital stuff
-                                pkgs.dash # provides "sh" 
                                 pkgs.coreutils-full
+                                pkgs.dash # for sh
                                 
                                 # optional stuff
                                 pkgs.gnugrep
@@ -134,10 +200,7 @@
                                         # lots of things need "sh"
                                         ln -s "$(which dash)" "$HOME/.local/bin/sh" 2>/dev/null
                                         alias nix="nix --experimental-features 'nix-command flakes'"
-                                        
-                                        echo "dont forget deno wasm-pack-embed-unofficial"
-                                        # this enables some impure stuff like sudo, comment it out to get FULL purity
-                                        export PATH="$PATH:/usr/bin/"
+                                        ${shellHook}
                                     '';
                                 };
                                 starship = {

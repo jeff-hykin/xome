@@ -1,5 +1,5 @@
 {
-    description = "port-kill";
+    description = "patchShebangsRust";
 
     inputs = {
         libSource.url = "github:divnix/nixpkgs.lib";
@@ -16,7 +16,7 @@
     outputs = { self, flake-utils, nixpkgs, fenix, xome, ... }:
         flake-utils.lib.eachSystem (builtins.attrNames fenix.packages) (system:
             let
-                projectName = "port-kill";
+                projectName = "patchShebangsRust";
                 pkgs = import nixpkgs {
                     inherit system;
                     overlays = [
@@ -24,7 +24,7 @@
                     ];
                     config = {
                         allowUnfree = true;
-                        allowInsecure = false;
+                        allowInsecure = true;
                         permittedInsecurePackages = [
                         ];
                     };
@@ -39,75 +39,12 @@
                     rustc = rustToolchain;
                     cargo = rustToolchain;
                 };
-                commonRuntimeDeps = [
-                    pkgs.lsof
-                ];
-                commonDeps = [
+                nativeBuildInputs = [
+                    pkgs.gcc
                     pkgs.libiconv
                 ];
-                macOsOnlyDeps = [
-                    pkgs.clang
-                ];
-                pkgsForPkgConfigTool = [
-                    # given inputs
-                    pkgs.atk.dev
-                    pkgs.gdk-pixbuf.dev
-                    pkgs.gtk3.dev
-                    pkgs.pango.dev
-                    pkgs.libayatana-appindicator-gtk3.dev
-                    pkgs.glib.dev
-                    # discovered needed inputs
-                    pkgs.dbus.dev
-                    pkgs.libpng.dev
-                    pkgs.libjpeg.dev
-                    pkgs.libtiff.dev
-                    pkgs.cairo.dev
-                    pkgs.fribidi.dev
-                    pkgs.fontconfig.dev
-                    pkgs.harfbuzz.dev
-                    pkgs.libthai.dev
-                    pkgs.freetype.dev
-                    pkgs.xorg.libXrender.dev
-                    pkgs.xorg.libXft.dev
-                    pkgs.zlib
-                    pkgs.zlib.dev
-                    pkgs.libffi.dev
-                    pkgs.libselinux.dev
-                    pkgs.expat.dev
-                    pkgs.graphite2.dev
-                    pkgs.bzip2.dev
-                    pkgs.lerc.dev
-                    pkgs.libsepol.dev
-                    # libs not even on the list, but needed at link time 
-                    pkgs.json-glib
-                    pkgs.libselinux
-                    pkgs.wayland
-                    pkgs.libjson
-                    pkgs.tinysparql
-                    pkgs.tinysparql.dev
-                    pkgs.json-glib.dev
-                    pkgs.libselinux.dev
-                    pkgs.wayland.dev
-                ];
-                PKG_CONFIG_PATH = builtins.concatStringsSep ":" (map (x: "${x}/lib/pkgconfig") pkgsForPkgConfigTool);
-                LD_LIBRARY_PATH = builtins.concatStringsSep ":" (map (x: "${x}/lib") pkgsForPkgConfigTool);
-                LIBRARY_PATH = builtins.concatStringsSep ":" (map (x: "${x}/lib") pkgsForPkgConfigTool);
-                linuxOnlyDeps = pkgsForPkgConfigTool ++ [
-                    pkgs.gcc
-                    pkgs.pkg-config
-                ];
-                nativeBuildInputs = commonDeps ++ (if pkgs.stdenv.isLinux then linuxOnlyDeps else []);
                 shellHook = ''
                     export LIBRARY_PATH="$LIBRARY_PATH:${pkgs.libiconv}/lib"
-                    ${if builtins.match ".*linux.*" system != null then
-                        ''
-                        export PKG_CONFIG_PATH="${PKG_CONFIG_PATH}"
-                        export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}"
-                        export LIBRARY_PATH="${LIBRARY_PATH}"
-                        ''
-                    else
-                        ""
-                    }
                 '';
             in
                 {
@@ -117,27 +54,23 @@
                         src = ./.;
                         
                         nativeBuildInputs = nativeBuildInputs;
-                        buildInputs = commonRuntimeDeps;
+                        buildInputs = [];
 
                         cargoLock = {
                             lockFile = ./Cargo.lock;
                         };
 
                         meta = {
-                            description = "port-kill";
+                            description = projectName;
                         };
                         
                         buildPhase = ''
                             ${shellHook}
-                            if [ "$OSTYPE" = "linux-gnu" ]; then
-                                sh "$src/build-linux.sh"
-                            else
-                                sh "$src/build-macos.sh"
-                            fi
+                            cargo build --release
                         '';
                         installPhase = ''
                             mkdir -p "$out/bin/"
-                            cp ./target/release/port-kill "$out/bin/port-kill"
+                            cp -r ./target/release "$out/bin/"
                         '';
                         XDG_CACHE_HOME = "/tmp/build/cache";
                     };
@@ -152,7 +85,7 @@
                             # https://nix-community.github.io/home-manager/options.xhtml
                             home.homeDirectory = "/tmp/virtual_homes/${projectName}";
                             home.stateVersion = "25.05";
-                            home.packages = nativeBuildInputs ++ commonRuntimeDeps ++ [
+                            home.packages = nativeBuildInputs ++ [
                                 # project stuff
                                 rustToolchain
                                 
@@ -210,5 +143,6 @@
                         }; 
                     };
                 }
+                    
     );
 }
