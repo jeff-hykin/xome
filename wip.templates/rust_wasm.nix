@@ -133,6 +133,8 @@
                                     initContent = ''
                                         # lots of things need "sh"
                                         ln -s "$(which dash)" "$HOME/.local/bin/sh" 2>/dev/null
+                                        setopt interactivecomments
+                                        
                                         alias nix="nix --experimental-features 'nix-command flakes'"
                                         
                                         echo "dont forget deno wasm-pack-embed-unofficial"

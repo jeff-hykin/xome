@@ -83,6 +83,11 @@
                             history.size = 100000;
                             # this is kinda like .zshrc
                             initContent = ''
+                                # lots of things need "sh"
+                                ln -s "$(which dash)" "$HOME/.local/bin/sh" 2>/dev/null
+                                
+                                setopt interactivecomments
+                                
                                 #
                                 # venv
                                 #
@@ -98,9 +103,6 @@
                                 else
                                     source "$VENV_DIR/bin/activate"
                                 fi
-                                
-                                # lots of things need "sh"
-                                ln -s "$(which dash)" "$HOME/.local/bin/sh" 2>/dev/null
                                 
                                 # this enables some impure stuff like sudo, comment it out to get FULL purity
                                 export PATH="$PATH:/usr/bin/"

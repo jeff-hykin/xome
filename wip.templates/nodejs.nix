@@ -107,6 +107,8 @@
                                         # lots of things need "sh"
                                         ln -s "$(which dash)" "$HOME/.local/bin/sh" 2>/dev/null
                                         
+                                        setopt interactivecomments
+                                        
                                         # without this npm (from nix) will not keep a reliable cache (it'll be outside of the xome home)
                                         export npm_config_cache="$HOME/.cache/npm"
                                         
