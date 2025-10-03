@@ -23,7 +23,7 @@ Make a `flake.nix` in the root of your project:
         xome.inputs.home-manager.follows = "home-manager";
     };
     outputs = { self, nixpkgs, xome, ... }:
-        xome.superSimpleMakeHome { inherit nixpkgs; pure = true; } ({pkgs, ...}:
+        xome.superSimpleMakeHome { inherit nixpkgs; pure = true; } ({pkgs, system, ...}:
             {
                 # for home-manager examples, see: https://deepwiki.com/nix-community/home-manager/5-configuration-examples
                 # all home-manager options: https://nix-community.github.io/home-manager/options.xhtml
@@ -355,7 +355,7 @@ All three of the following "THIS NUMBER" need to match:
         xome.inputs.home-manager.follows = "home-manager";
     };
     outputs = { self, nixpkgs, xome, ... }:
-        xome.superSimpleMakeHome { inherit nixpkgs; pure = true; } ({pkgs, ...}:
+        xome.superSimpleMakeHome { inherit nixpkgs; pure = true; } ({pkgs, system, ...}:
             {
                 /* stuff */
                 home.stateVersion = "25.05"; # <- THIS number

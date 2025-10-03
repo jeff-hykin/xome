@@ -8,7 +8,7 @@
         xome.inputs.home-manager.follows = "home-manager";
     };
     outputs = { self, nixpkgs, xome, ... }:
-        xome.superSimpleMakeHome { inherit nixpkgs; pure = true; } ({pkgs, ...}:
+        xome.superSimpleMakeHome { inherit nixpkgs; pure = true; } ({pkgs, system, ...}:
             {
                 # for home-manager examples, see: https://deepwiki.com/nix-community/home-manager/5-configuration-examples
                 # all home-manager options: https://nix-community.github.io/home-manager/options.xhtml

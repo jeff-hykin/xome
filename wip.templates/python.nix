@@ -1,5 +1,5 @@
 {
-    description = "My Project";
+    description = "Auto Search";
     inputs = {
         nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
         home-manager.url = "github:nix-community/home-manager/release-25.05";
@@ -8,21 +8,25 @@
         xome.inputs.home-manager.follows = "home-manager";
     };
     outputs = { self, nixpkgs, xome, ... }:
-        xome.superSimpleMakeHome { inherit nixpkgs; pure = true; } ({pkgs, ...}:
+        xome.superSimpleMakeHome { inherit nixpkgs; pure = true; } ({pkgs, system, ...}:
             let
-                stdenvLibs = [
-                    pkgs.stdenv.cc.cc
-                    pkgs.glibc
-                    pkgs.zlib
-                    pkgs.freetype
-                    pkgs.libjpeg
-                    pkgs.libpng
-                ];
+                isMacOs = (builtins.match ".*darwin.*" system) != null;
+                stdenvLibs = (builtins.filter
+                    (eachPkg: eachPkg != null)
+                    [
+                        pkgs.stdenv.cc.cc
+                        (if !isMacOs then pkgs.glibc else null)
+                        pkgs.zlib
+                        pkgs.freetype
+                        pkgs.libjpeg
+                        pkgs.libpng
+                    ]
+                );
             in
                 {
                     # for home-manager examples, see: https://deepwiki.com/nix-community/home-manager/5-configuration-examples
                     # all home-manager options: https://nix-community.github.io/home-manager/options.xhtml
-                    home.homeDirectory = "/tmp/virtual_homes/my_project1";
+                    home.homeDirectory = "/tmp/virtual_homes/auto_search";
                     home.stateVersion = "25.05";
                     home.packages = stdenvLibs ++ [
                         (pkgs.python3.withPackages (ps: [
@@ -99,7 +103,11 @@
                                     python3 -m venv $VENV_DIR
                                     source "$VENV_DIR/bin/activate"
                                     pip install --upgrade pip
-                                    pip install -r ./requirements.txt
+                                    # check if file exists
+                                    if [ -f "./requirements.txt" ]
+                                    then
+                                        pip install -r ./requirements.txt
+                                    fi
                                 else
                                     source "$VENV_DIR/bin/activate"
                                 fi
