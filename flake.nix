@@ -38,12 +38,12 @@
                     homePath = home.config.home.homeDirectory;
                     envPassthroughFiltered = builtins.filter (envVar: envVar != "PATH" && envVar != "HOME" && envVar != "SHELL") envPassthrough;
                     envPassthroughString = lib.concatStringsSep " " (builtins.map (envVar: lib.escapeShellArg envVar + ''="$'' + envVar + ''"'') envPassthroughFiltered);
-                    
+                    baseCommand = "XOME_ACTIVE=1 HOME=${lib.escapeShellArg homePath} SHELL=${lib.escapeShellArg (builtins.elemAt shellCommandList 0)} PATH=${lib.escapeShellArg "${pkgs.nix}/bin/"}:${lib.escapeShellArg homePath}/.local/bin:${lib.escapeShellArg homePath}/bin:${lib.escapeShellArg homePath}/.nix-profile/bin"
                     mainCommand = (
                         if (pure) then
-                            ''env -i XOME_ACTIVE=1 PATH=${lib.escapeShellArg "${pkgs.nix}/bin/"}:${lib.escapeShellArg homePath}/.local/bin:${lib.escapeShellArg homePath}/bin:${lib.escapeShellArg homePath}/.nix-profile/bin HOME=${lib.escapeShellArg homePath} SHELL=${lib.escapeShellArg (builtins.elemAt shellCommandList 0)} ${envPassthroughString} ${shellCommandString}''
+                            ''env -i ${baseCommand} ${envPassthroughString} ${shellCommandString}''
                         else
-                            ''XOME_ACTIVE=1 PATH=${lib.escapeShellArg "${pkgs.nix}/bin/"}:${lib.escapeShellArg homePath}/.local/bin:${lib.escapeShellArg homePath}/bin:${lib.escapeShellArg homePath}/.nix-profile/bin:"$PATH" HOME=${lib.escapeShellArg homePath} SHELL=${lib.escapeShellArg (builtins.elemAt shellCommandList 0)} ${shellCommandString}''
+                            ''${baseCommand}:"$PATH" ${shellCommandString}''
                     );
                 in 
                     {
