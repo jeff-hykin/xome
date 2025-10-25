@@ -12,25 +12,25 @@
             lib = libSource.lib;
             defaultEnvPassthrough = [ "NIX_SSL_CERT_FILE" "TERM" "XOME_REAL_HOME" "XOME_REAL_PATH" ];
             defaultCommandPassthrough = [];
-            defaultRealHomeSubpathPassthrough = [ "cache/nix/" ];
+            defaultHomeSubpathPassthrough = [ "cache/nix/" ];
             makeHomeFor = ({
                 overrideShell ? null,
                 home,
                 pure ? true,
                 envPassthrough ? defaultEnvPassthrough,
                 commandPassthrough ? defaultCommandPassthrough,
-                realHomeSubpathPassthrough ? defaultRealHomeSubpathPassthrough,
+                homeSubpathPassthrough ? defaultHomeSubpathPassthrough,
                 _interallyUsedPkgs ? null,
                  ...
             }@args:
                 let 
                     pkgs = home.pkgs;
                     commandPassthrough1         = if null != commandPassthrough         then commandPassthrough else [];
-                    realHomeSubpathPassthrough1 = if null != realHomeSubpathPassthrough then realHomeSubpathPassthrough else defaultRealHomeSubpathPassthrough;
+                    homeSubpathPassthrough1     = if null != homeSubpathPassthrough     then homeSubpathPassthrough else defaultHomeSubpathPassthrough;
                     interallyUsedPkgs1          = if null != _interallyUsedPkgs         then _interallyUsedPkgs else {};
                     interallyUsedPkgs2 = {
                         coreutils = if (builtins.hasAttr "coreutils" interallyUsedPkgs1) then (interallyUsedPkgs1.coreutils) else (pkgs.coreutils);
-                        gnugrep = if (builtins.hasAttr "gnugrep" interallyUsedPkgs1) then (interallyUsedPkgs1.gnugrep) else (pkgs.gnugrep);
+                        gnugrep   = if (builtins.hasAttr "gnugrep"   interallyUsedPkgs1) then (interallyUsedPkgs1.gnugrep)   else (pkgs.gnugrep);
                     };
                     shellPackageNameProbably = (
                         if (home.config.programs.zsh.enable) then
@@ -58,10 +58,11 @@
                     envPassthroughString = lib.concatStringsSep " " (builtins.map (envVar: lib.escapeShellArg envVar + ''="$'' + envVar + ''"'') envPassthroughFiltered);
                     commandPassthroughString = lib.concatStringsSep "\n" (builtins.map
                         # NOTE: there is a case where the command doesn't exist (ex: deleted on the host) but the 
+                        # NOTE: there is a subtle issue with external commands. If the external command is a nix value it will be ignored
                         (eachCommandName: 
                             ''
                                 cmd=${lib.escapeShellArg eachCommandName}
-                                cmd_path="$(command -v "$cmd")"
+                                cmd_path="$(PATH="$XOME_REAL_PATH" command -v "$cmd")"
                                 symlink="$HOME/.local/bin/$cmd"
                                 current_target="$("$readlink" -f "$symlink")"
                                 if ! [ -x "$current_target" ]; then
@@ -80,7 +81,7 @@
                         )
                         commandPassthrough
                     );
-                    realHomeSubpathPassthroughString = lib.concatStringsSep "\n" (builtins.map
+                    homeSubpathPassthroughString = lib.concatStringsSep "\n" (builtins.map
                         # NOTE: there is an unhandled risk of the intermediate in a sub-path being a file 
                         # ex: subpath="cache/thing1/thing2" where "cache/thing1" somehow ended up being a file
                         (eachPath:
@@ -106,7 +107,7 @@
                                     fi
                                 ''
                         )
-                        realHomeSubpathPassthrough1
+                        homeSubpathPassthrough1
                     );
                     baseCommand = "XOME_ACTIVE=1 HOME=${lib.escapeShellArg homePath} SHELL=${lib.escapeShellArg (builtins.elemAt shellCommandList 0)} PATH=${lib.escapeShellArg "${pkgs.nix}/bin/"}:${lib.escapeShellArg homePath}/.local/bin:${lib.escapeShellArg homePath}/bin:${lib.escapeShellArg homePath}/.nix-profile/bin";
                     mainCommand = (
@@ -115,26 +116,62 @@
                         else
                             ''${baseCommand}:"$PATH" ${shellCommandString}''
                     );
-                    escapeShellArg1 = arg: if (builtins.isString arg) then lib.escapeShellArg arg else lib.escapeShellArg (builtins.toString arg);
                 in 
                     {
                         default = pkgs.mkShell {
                             packages = home.config.home.packages;
                             shellHook = ''
-                                export XOME_REAL_USER="$USER"
+                                # 
+                                # we have to do a lot of work to get the user's real PATH
+                                # 
+                                
+                                # we must recreate the external PATH by figuring out what gets added to the PATH by nix
+                                _prefix_finder_value="__PREFIX_FINDER_0249858203"
+                                # end this devshell early if just getting the PATH prefix
+                                case "$PATH" in
+                                    *"$_prefix_finder_value"*) printf '%s' "$PATH"; exit 0;;
+                                esac
+                                _path_with_prefix="$(PATH="$_prefix_finder_value:$PATH" nix develop --command bash --pure 2>/dev/null)"
+                                _path_prefix=""
+                                _old_ifs="$IFS"
+                                IFS=':'
+                                for dir in $_path_with_prefix; do
+                                    if [ "$dir" = "$_prefix_finder_value" ]
+                                    then
+                                        break
+                                    fi
+                                    _path_prefix="$_path_prefix:$dir"
+                                done
+                                IFS="$_old_IFS"
+                                unset _prefix_finder_value
+                                unset _path_with_prefix
+                                unset _old_IFS
+                                
+                                # removal the nix devshell prefix from the PATH to get the real path
                                 export XOME_REAL_PATH="$PATH"
+                                _i=0
+                                while [ "$_i" -lt "''${#_path_prefix}" ]; do
+                                    XOME_REAL_PATH="''${XOME_REAL_PATH#?}"  # remove first character
+                                    _i=$((_i + 1))
+                                done
+                                unset _path_prefix
+                                unset _i
+                                
+                                #
+                                # everything below is more straightforward
+                                #
+                                export XOME_REAL_USER="$USER"
                                 export XOME_REAL_HOME="$HOME"
-                                export XOME_FAKE_HOME=${escapeShellArg1 homePath}
+                                export XOME_FAKE_HOME=${lib.escapeShellArg homePath}
                                 export HOME="$XOME_FAKE_HOME"
                                 mkdir -p "$HOME/.local/state/nix/profiles"
                                 mkdir -p "$HOME/.local/bin"
                                 mkdir -p "$HOME/.cache/"
                                 
-                                # setup command passthrough
-                                readlink=${lib.escapeShellArg interallyUsedPkgs2.coreutils /* NOTE: commandPassthroughString and realHomeSubpathPassthroughString depend on this */ }/bin/readlink
-                                dirname=${lib.escapeShellArg interallyUsedPkgs2.coreutils /* NOTE: realHomeSubpathPassthroughString depends on this */ }/bin/dirname
+                                readlink=${lib.escapeShellArg interallyUsedPkgs2.coreutils /* NOTE: commandPassthroughString and homeSubpathPassthroughString depend on this */ }/bin/readlink
+                                dirname=${lib.escapeShellArg interallyUsedPkgs2.coreutils /* NOTE: homeSubpathPassthroughString depends on this */ }/bin/dirname
                                 ${commandPassthroughString}
-                                ${realHomeSubpathPassthroughString}
+                                ${homeSubpathPassthroughString}
                                 # keep env clean
                                 unset readlink
                                 unset dirname
@@ -146,10 +183,7 @@
                                 unset cmd_path
                                 unset symlink
                                 unset current_target
-                                # must hardcode standard paths (missing stuff like /opt/homebrew/bin:/opt/homebrew/sbin:/opt/X11/bin on Mac and stuff like /snap/bin on Ubuntu)
-                                # because XOME_REAL_PATH is already polluted with stuff from the nix flake. Its hard to undo that without making a wrapper around `nix develop`
-                                # we need this prefix because we want `sys THING` to default to the system thing, not the nix flake thing
-                                echo 'PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:"$HOME/.nix-profile/bin":/nix/var/nix/profiles/default/bin/:/nix/var/nix/profiles/per-user/$USER/profile/bin/:$XOME_REAL_PATH" HOME="$XOME_REAL_HOME" "$@"' > "$HOME/.local/bin/sys"
+                                echo 'PATH="$XOME_REAL_PATH" HOME="$XOME_REAL_HOME" "$@"' > "$HOME/.local/bin/sys"
                                 chmod +x "$HOME/.local/bin/sys"
                                 # note: the grep is to remove common startup noise
                                 USER="default" HOME=${lib.escapeShellArg homePath} ${home.activationPackage.out}/activate 2>&1 | ${interallyUsedPkgs2.gnugrep}/bin/grep -v -E "Starting Home Manager activation|warning: unknown experimental feature 'repl-flake'|Activating checkFilesChanged|Activating checkLinkTargets|Activating writeBoundary|No change so reusing latest profile generation|Activating installPackages|warning: unknown experimental feature 'repl-flake'|replacing old 'home-manager-path'|installing 'home-manager-path'|Activating linkGeneration|Cleaning up orphan links from .*|Creating home file links in .*|Activating onFilesChange|Activating setupLaunchAgents"
@@ -165,18 +199,18 @@
                 pure ? true,
                 envPassthrough ? defaultEnvPassthrough,
                 commandPassthrough ? defaultCommandPassthrough,
+                homeSubpathPassthrough ? defaultHomeSubpathPassthrough,
                 homeModule,
-                realHomeSubpathPassthrough ? defaultRealHomeSubpathPassthrough,
                 _interallyUsedPkgs ? null,
                 ... 
             }:
                 makeHomeFor {
+                    overrideShell = overrideShell;
+                    pure = pure;
                     envPassthrough = envPassthrough;
                     commandPassthrough = commandPassthrough;
-                    overrideShell = overrideShell;
-                    realHomeSubpathPassthrough = realHomeSubpathPassthrough;
+                    homeSubpathPassthrough = homeSubpathPassthrough;
                     _interallyUsedPkgs = _interallyUsedPkgs;
-                    pure = pure;
                     home = (
                         let
                             setupModule = homeModule // {
@@ -208,7 +242,7 @@
                     pure ? true,
                     envPassthrough ? defaultEnvPassthrough,
                     commandPassthrough ? defaultCommandPassthrough,
-                    realHomeSubpathPassthrough ? defaultRealHomeSubpathPassthrough,
+                    homeSubpathPassthrough ? defaultHomeSubpathPassthrough,
                     _interallyUsedPkgs ? null,
                     ...
                 }: 
@@ -219,18 +253,18 @@
                                 {
                                     devShells = simpleMakeHomeFor {
                                         pkgs = nixpkgs.legacyPackages.${system}; 
-                                        envPassthrough = envPassthrough; 
-                                        commandPassthrough = commandPassthrough;
-                                        realHomeSubpathPassthrough = realHomeSubpathPassthrough;
                                         overrideShell = overrideShell;
                                         pure = pure;
+                                        envPassthrough = envPassthrough; 
+                                        commandPassthrough = commandPassthrough;
+                                        homeSubpathPassthrough = homeSubpathPassthrough;
+                                        _interallyUsedPkgs = _interallyUsedPkgs;
                                         homeModule = (homeConfigFunc
                                             {
                                                 inherit system;
                                                 pkgs = nixpkgs.legacyPackages.${system};
                                             }
                                         );
-                                        _interallyUsedPkgs = _interallyUsedPkgs;
                                     };
                                 }
                             )
