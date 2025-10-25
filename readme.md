@@ -235,7 +235,7 @@ If you want absolute control, this is the flake template for you:
                     packages = { /* your normal flake stuff*/ };
                     devShells = xome.makeHomeFor {
                         pure = true;
-                        envPassthrough = [ "NIX_SSL_CERT_FILE" "TERM" "XOME_REAL_HOME" "XOME_REAL_PATH" ];
+                        envPassthrough = [ "NIX_SSL_CERT_FILE" "TERM" "XOME_REAL_HOME" "XOME_REAL_PATH" "XOME_FAKE_HOME" "XOME_REAL_USER" ];
                         # ^this is the default list. Could add HISTSIZE, EDITOR, etc without loosing much purity
                         commandPassthrough = [ "sudo" "nvim" "code" ]; # e.g. use external nvim instead of nix's
                         # commonly needed for MacOS: [ "osascript" "otool" "hidutil" "logger" "codesign" ]

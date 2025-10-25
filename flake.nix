@@ -10,7 +10,7 @@
     outputs = { self, libSource, flake-utils, home-manager, ... }:
         let
             lib = libSource.lib;
-            defaultEnvPassthrough = [ "NIX_SSL_CERT_FILE" "TERM" "XOME_REAL_HOME" "XOME_REAL_PATH" ];
+            defaultEnvPassthrough = [ "NIX_SSL_CERT_FILE" "TERM" "XOME_REAL_HOME" "XOME_REAL_PATH" "XOME_FAKE_HOME" "XOME_REAL_USER" ];
             defaultCommandPassthrough = [];
             defaultHomeSubpathPassthrough = [ "cache/nix/" ];
             makeHomeFor = ({
