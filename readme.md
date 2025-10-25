@@ -57,6 +57,7 @@ Make a `flake.nix` in the root of your project:
                     pkgs.ripgrep
                 ];
                 
+                # setup zsh with starship
                 programs = {
                     home-manager = {
                         enable = true;
@@ -81,6 +82,12 @@ Make a `flake.nix` in the root of your project:
                     starship = {
                         enable = true;
                         enableZshIntegration = true;
+                        settings = {
+                            character = {
+                                success_symbol = "[∫](bold green)";
+                                error_symbol = "[∫](bold red)";
+                            };
+                        };
                     };
                 };
             }
@@ -134,6 +141,9 @@ You can add Xome like this:
                     devShells = xome.simpleMakeHomeFor {
                         inherit pkgs;
                         pure = true;
+                        commandPassthrough = [ "sudo" "nvim" "code" ]; # e.g. use external nvim instead of nix's
+                        # commonly needed for MacOS: [ "osascript" "otool" "hidutil" "logger" "codesign" ]
+                        homeSubpathPassthrough = [ "cache/nix/" ]; # share nix cache between projects
                         homeModule = {
                             # for home-manager examples, see: 
                             # https://deepwiki.com/nix-community/home-manager/5-configuration-examples
@@ -227,6 +237,10 @@ If you want absolute control, this is the flake template for you:
                         pure = true;
                         envPassthrough = [ "NIX_SSL_CERT_FILE" "TERM" "XOME_REAL_HOME" "XOME_REAL_PATH" ];
                         # ^this is the default list. Could add HISTSIZE, EDITOR, etc without loosing much purity
+                        commandPassthrough = [ "sudo" "nvim" "code" ]; # e.g. use external nvim instead of nix's
+                        # commonly needed for MacOS: [ "osascript" "otool" "hidutil" "logger" "codesign" ]
+                        homeSubpathPassthrough = [ "cache/nix/" ];
+                        # ^ could also add ".ssh/", "Library/Keychains/", ".pypirc", etc to get credentials symlinked into the fake home
                         home = (home-manager.lib.homeManagerConfiguration
                              {
                                 inherit pkgs;
@@ -279,8 +293,8 @@ If you want absolute control, this is the flake template for you:
                                                     # lots of things need "sh"
                                                     ln -s "$(which dash)" "$HOME/.local/bin/sh" 2>/dev/null
                                                     
-                                                    # this enables some impure stuff like sudo, comment it out to get FULL purity
-                                                    export PATH="$PATH:/usr/bin/"
+                                                    # if you don't want things to be perfectly pure, enable the next line
+                                                    # export PATH="$PATH:/usr/bin/"
                                                 '';
                                             };
                                             starship = {
@@ -314,7 +328,7 @@ If you want absolute control, this is the flake template for you:
 - Note 3: Bulky Examples
   - The examples below are big and fully inlined (one file) for clarity, but pro-tip: yours can be much more sleek! Make a big home config that is exactly how you like (nu shell / fish, colors, aliases, essential packages, etc), put it in a git repo somewhere, then import it as a starter kit for multiple projects. Its really nice to update a home config one place, then `nix flake update` to pull it into each project. 
   - I'll probably add an example of this using home-modules at some point.
-  - I'm considering adding mutilple profiles (e.g. someone on the team likes zsh and another person likes fish). Open an issue if you want that feature. 
+  - I'm considering adding multiple profiles (e.g. someone on the team likes zsh and another person likes fish). Open an issue if you want that feature. 
 
 
 ## How can I do _ ?

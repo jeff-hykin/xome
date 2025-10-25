@@ -1,5 +1,5 @@
 {
-    description = "Auto Search";
+    description = "json_fix";
     inputs = {
         nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
         home-manager.url = "github:nix-community/home-manager/release-25.05";
@@ -8,7 +8,7 @@
         xome.inputs.home-manager.follows = "home-manager";
     };
     outputs = { self, nixpkgs, xome, ... }:
-        xome.superSimpleMakeHome { inherit nixpkgs; pure = true; } ({pkgs, system, ...}:
+        xome.superSimpleMakeHome { inherit nixpkgs; pure = true; homeSubpathPassthrough = [ "cache/nix/" ".pypirc" ]; } ({pkgs, system, ...}:
             let
                 isMacOs = (builtins.match ".*darwin.*" system) != null;
                 stdenvLibs = (builtins.filter
@@ -26,7 +26,7 @@
                 {
                     # for home-manager examples, see: https://deepwiki.com/nix-community/home-manager/5-configuration-examples
                     # all home-manager options: https://nix-community.github.io/home-manager/options.xhtml
-                    home.homeDirectory = "/tmp/virtual_homes/auto_search";
+                    home.homeDirectory = "/tmp/virtual_homes/json_fix";
                     home.stateVersion = "25.05";
                     home.packages = stdenvLibs ++ [
                         (pkgs.python3.withPackages (ps: [
@@ -46,6 +46,7 @@
                         ]))
                         pkgs.python3Packages.venvShellHook
                         pkgs.sqlite
+                        pkgs.deno
                         
                         # vital stuff
                         pkgs.coreutils-full
