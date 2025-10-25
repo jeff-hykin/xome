@@ -1,5 +1,5 @@
 {
-    description = "ZenFS";
+    description = "Nixpkgs_electron_template_actions";
     inputs = {
         libSource.url = "github:divnix/nixpkgs.lib";
         flake-utils.url = "github:numtide/flake-utils";
@@ -27,23 +27,27 @@
                 inputPackages = [
                     pkgs.nodejs
                     pkgs.esbuild
-                    pkgs.graphviz
-                    pkgs.nodePackages.typescript
-                    pkgs.nodePackages.prettier
+                    
+                    # pkgs.yarn
+                    # pkgs.corepack # needed for yarn to work
+                    # pkgs.esbuild
+                    # pkgs.graphviz # used for visualizing circular dependencies (e.g. debugging only)
+                    # pkgs.nodePackages.typescript
+                    # pkgs.nodePackages.prettier
                 ];
             in
                 {
                     # this is how the package is built (as a dependency)
                     packages.default = pkgs.stdenv.mkDerivation {
-                        name = "my-ts-app";
                         src = ./.;
+                        name = (builtins.toJSON (builtins.readFile ./package.json)).name;
 
                         buildInputs = inputPackages;
 
                         buildPhase = ''
                             export HOME=$(mktemp -d) # Needed by npm to avoid global install warnings
                             npm install
-                            tsc
+                            # tsc
                         '';
 
                         installPhase = ''
@@ -61,7 +65,7 @@
                             # https://deepwiki.com/nix-community/home-manager/5-configuration-examples
                             # all home-manager options: 
                             # https://nix-community.github.io/home-manager/options.xhtml
-                            home.homeDirectory = "/tmp/virtual_homes/zenfs";
+                            home.homeDirectory = "/tmp/virtual_homes/nixpkgs_electron_template_actions";
                             home.stateVersion = "25.05";
                             home.packages = inputPackages ++ [
                                 # vital stuff
@@ -112,6 +116,26 @@
                                         # without this npm (from nix) will not keep a reliable cache (it'll be outside of the xome home)
                                         export npm_config_cache="$HOME/.cache/npm"
                                         
+                                        # 
+                                        # offer to run npm install
+                                        # 
+                                        if ! [ -d "node_modules" ]
+                                        then
+                                            question="I don't see node_modules, should I run npm install? [y/n]";answer=""
+                                            while true; do
+                                                echo "$question"; read response
+                                                case "$response" in
+                                                    [Yy]* ) answer='yes'; break;;
+                                                    [Nn]* ) answer='no'; break;;
+                                                    * ) echo "Please answer yes or no.";;
+                                                esac
+                                            done
+                                            
+                                            if [ "$answer" = 'yes' ]; then
+                                                npm install
+                                            fi
+                                        fi
+                                        
                                         # this enables some impure stuff like sudo, comment it out to get FULL purity
                                         # export PATH="$PATH:/usr/bin/"
                                         echo
@@ -121,6 +145,12 @@
                                 starship = {
                                     enable = true;
                                     enableZshIntegration = true;
+                                    settings = {
+                                        character = {
+                                            success_symbol = "[∫](bold green)";
+                                            error_symbol = "[∫](bold red)";
+                                        };
+                                    };
                                 };
                             };
                         }; 
