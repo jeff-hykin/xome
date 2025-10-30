@@ -1,5 +1,5 @@
 {
-    description = "Nixpkgs_electron_template_actions";
+    description = "ZenFS";
     inputs = {
         libSource.url = "github:divnix/nixpkgs.lib";
         flake-utils.url = "github:numtide/flake-utils";
@@ -13,6 +13,7 @@
     outputs = { self, flake-utils, nixpkgs, xome, ... }:
         flake-utils.lib.eachSystem flake-utils.lib.defaultSystems (system:
             let
+                projectName = "zen-fs_core"; # used as directory name (e.g. no slashes)
                 pkgs = import nixpkgs {
                     inherit system;
                     overlays = [
@@ -20,42 +21,21 @@
                     config = {
                         allowUnfree = true;
                         allowInsecure = false;
-                        permittedInsecurePackages = [
-                        ];
+                        permittedInsecurePackages = [];
                     };
                 };
                 inputPackages = [
                     pkgs.nodejs
+                    pkgs.cacert # needed for installing npm packages
+                    pkgs.corepack
+                    pkgs.yarn
                     pkgs.esbuild
-                    
-                    # pkgs.yarn
-                    # pkgs.corepack # needed for yarn to work
-                    # pkgs.esbuild
-                    # pkgs.graphviz # used for visualizing circular dependencies (e.g. debugging only)
-                    # pkgs.nodePackages.typescript
-                    # pkgs.nodePackages.prettier
+                    pkgs.graphviz # used for visualizing circular dependencies (e.g. debugging only)
+                    pkgs.nodePackages.typescript
+                    pkgs.nodePackages.prettier
                 ];
             in
                 {
-                    # this is how the package is built (as a dependency)
-                    packages.default = pkgs.stdenv.mkDerivation {
-                        src = ./.;
-                        name = (builtins.toJSON (builtins.readFile ./package.json)).name;
-
-                        buildInputs = inputPackages;
-
-                        buildPhase = ''
-                            export HOME=$(mktemp -d) # Needed by npm to avoid global install warnings
-                            npm install
-                            # tsc
-                        '';
-
-                        installPhase = ''
-                            mkdir -p $out
-                            cp -r dist/* $out/
-                        '';
-                    };
-                    
                     # development environment for contributions
                     devShells = xome.simpleMakeHomeFor {
                         inherit pkgs;
@@ -65,7 +45,7 @@
                             # https://deepwiki.com/nix-community/home-manager/5-configuration-examples
                             # all home-manager options: 
                             # https://nix-community.github.io/home-manager/options.xhtml
-                            home.homeDirectory = "/tmp/virtual_homes/nixpkgs_electron_template_actions";
+                            home.homeDirectory = "/tmp/virtual_homes/${projectName}";
                             home.stateVersion = "25.05";
                             home.packages = inputPackages ++ [
                                 # vital stuff
@@ -111,17 +91,15 @@
                                         # lots of things need "sh"
                                         ln -s "$(which dash)" "$HOME/.local/bin/sh" 2>/dev/null
                                         
+                                        # most people expect comments in their shell to to work
                                         setopt interactivecomments
                                         
                                         # without this npm (from nix) will not keep a reliable cache (it'll be outside of the xome home)
                                         export npm_config_cache="$HOME/.cache/npm"
                                         
-                                        # 
-                                        # offer to run npm install
-                                        # 
                                         if ! [ -d "node_modules" ]
                                         then
-                                            question="I don't see node_modules, should I run npm install? [y/n]";answer=""
+                                            printf "\n\nI don't see node modules, want me to install them (default=yes)? [y/n]\n";answer=""
                                             while true; do
                                                 echo "$question"; read response
                                                 case "$response" in
@@ -132,7 +110,9 @@
                                             done
                                             
                                             if [ "$answer" = 'yes' ]; then
-                                                npm install
+                                                yarn install
+                                            else
+                                                echo "skipping"
                                             fi
                                         fi
                                         
@@ -155,6 +135,82 @@
                             };
                         }; 
                     };
+                    
+                    # as an automated reproducible dependency
+                    packages.default = (
+                        let
+                            # The path to the npm project
+                            src = ./.;
+
+                            # Read the package-lock.json as a Nix attrset
+                            packageLock = builtins.fromJSON (builtins.readFile (src + "/package-lock.json"));
+
+                            # Create an array of all (meaningful) dependencies
+                            deps = builtins.attrValues (removeAttrs packageLock.packages [ "" ])
+                                ++ (
+                                    if (builtins.hasAttr "dependencies" packageLock) then
+                                        builtins.attrValues (removeAttrs packageLock.dependencies [ "" ])
+                                    else
+                                        []
+                                )
+                            ;
+
+                            # Turn each dependency into a fetchurl call
+                            tarballs = map (p: pkgs.fetchurl { url = p.resolved; hash = p.integrity; }) deps;
+
+                            # Write a file with the list of tarballs
+                            tarballsFile = pkgs.writeTextFile {
+                                name = "tarballs";
+                                text = builtins.concatStringsSep "\n" tarballs;
+                            };
+                        in
+                            pkgs.stdenv.mkDerivation {
+                                inherit (packageLock) name version;
+                                inherit src;
+                                buildInputs = inputPackages; # needed for https
+                                
+                                buildPhase = ''
+                                    # ensure TMPDIR is defined, fallback to /tmp
+                                    : ${TMPDIR:=/tmp}
+                                    echo "Using TMPDIR=$TMPDIR"
+
+                                    # define writable npm locations
+                                    export HOME="$PWD/.home"
+                                    export NPM_CONFIG_CACHE="$HOME/.cache/npm"
+                                    export npm_config_cache="$NPM_CONFIG_CACHE"
+                                    export NPM_CONFIG_TMP="$HOME/.npm-tmp"
+                                    export NPM_CONFIG_PREFIX="$out"
+
+                                    # ensure dirs exist and are writable
+                                    mkdir -p "$NPM_CONFIG_CACHE" "$NPM_CONFIG_TMP" "$NPM_CONFIG_PREFIX"
+                                    
+                                    js_path="$out/src"
+                                    mkdir -p "$js_path"
+                                    cp -r "$src/." "$js_path"
+                                    # make locks writable
+                                    chmod +w "$js_path/yarn.lock" 2>/dev/null || true
+                                    chmod +w "$js_path/package-lock.json" 2>/dev/null || true
+
+                                    cd "$js_path"
+                                    while read package
+                                    do
+                                        echo "caching $package"
+                                        npm cache add "$package"
+                                    done <${tarballsFile}
+                                    
+                                    npm ci --no-save --no-audit --no-fund
+                                    echo "npm run build"
+                                    npm run build
+                                '';
+
+                                installPhase = ''
+                                    mkdir -p "$out/dist" "$out/bin"
+                                    # uncomment below if the project creates binaries to share
+                                    # ln -s "$js_path/node_modules/.bin" "$out/bin"
+                                    cp -r dist/* "$out/dist"
+                                '';
+                            }
+                    );
                 }
     );
 }

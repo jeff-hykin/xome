@@ -91,6 +91,7 @@
                                 # lots of things need "sh"
                                 ln -s "$(which dash)" "$HOME/.local/bin/sh" 2>/dev/null
                                 
+                                # most people expect comments in their shell to to work
                                 setopt interactivecomments
                                 
                                 #
