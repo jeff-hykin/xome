@@ -142,7 +142,7 @@ You can add Xome like this:
                         inherit pkgs;
                         pure = true;
                         commandPassthrough = [ "sudo" "nvim" "code" ]; # e.g. use external nvim instead of nix's
-                        # commonly needed for MacOS: [ "osascript" "otool" "hidutil" "logger" "codesign" ]
+                        # commonly needed for MacOS: [ "sw_vers" "osascript" "otool" "hidutil" "logger" "codesign" ]
                         homeSubpathPassthrough = [ "cache/nix/" ]; # share nix cache between projects
                         homeModule = {
                             # for home-manager examples, see: 
