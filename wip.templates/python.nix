@@ -1,5 +1,5 @@
 {
-    description = "json_fix";
+    description = "YOUR_PROJECT_NAME";
     inputs = {
         nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
         home-manager.url = "github:nix-community/home-manager/release-25.05";
@@ -26,7 +26,7 @@
                 {
                     # for home-manager examples, see: https://deepwiki.com/nix-community/home-manager/5-configuration-examples
                     # all home-manager options: https://nix-community.github.io/home-manager/options.xhtml
-                    home.homeDirectory = "/tmp/virtual_homes/json_fix";
+                    home.homeDirectory = "/tmp/virtual_homes/YOUR_PROJECT_NAME";
                     home.stateVersion = "25.05";
                     home.packages = stdenvLibs ++ [
                         (pkgs.python3.withPackages (ps: [
@@ -122,6 +122,12 @@
                         starship = {
                             enable = true;
                             enableZshIntegration = true;
+                            settings = {
+                                character = {
+                                    success_symbol = "[▣](bold green)";
+                                    error_symbol = "[▣](bold red)";
+                                };
+                            };
                         };
                     };
                 }
