@@ -1,6 +1,6 @@
 ![icon](https://github.com/user-attachments/assets/29706f81-b322-4026-b2af-18146272cb73)
 
-Xome ("Zome") brings the power of Nix's [home-manager](https://github.com/nix-community/home-manager) to projects -- meaning fancy customized team-shared shell enviornments that are even more reproducible than `nix-shell --pure`.
+Xome ("Zome") brings the power of Nix's [home-manager](https://github.com/nix-community/home-manager) to projects -- meaning fancy customized team-shared shell environments that are even more reproducible than `nix-shell --pure`.
 
 ## Example Usage
 
