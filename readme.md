@@ -1,6 +1,6 @@
 ![icon](https://github.com/user-attachments/assets/29706f81-b322-4026-b2af-18146272cb73)
 
-Xome ("Zome") brings the power of Nix's [home-manager](https://github.com/nix-community/home-manager) to projects -- meaning fancy customized team-shared shell enviornments that are even more reproducible than `nix-shell --pure`.
+Xome ("Zome") brings the power of Nix's [home-manager](https://github.com/nix-community/home-manager) to projects -- meaning fancy customized team-shared shell environments that are even more reproducible than `nix-shell --pure`.
 
 ## Example Usage
 
@@ -314,15 +314,16 @@ If you want absolute control, this is the flake template for you:
 
 ## Notes! 
 
+Xome comes with some minimal quality-of-life tools (because raw home manager in a nix flake has some challeges).
+
 - Note 1: `sys <COMMAND>`
-  - Xome is pure-by-default, `sys` helps keep it practial. 
-  - ❌ `git push` (no git config found, cause its a pure env)
-  - ✅ `sys git push` (works, uses your real home)
-  - ❌ `nvim` (command not found)
+  - Xome is pure-by-default but comes with a `sys` command to escape that pureness as needed.
+  - ✅ `sys git push` (grabs credentials from your real home)
+  - ❌ `git push` (no git config found, because its a pure env)
   - ✅ `sys nvim` (uses your system nvim)
-  - ❌ `sudo chmod +x /dev/thing`
+  - ❌ `nvim` (command not found)
   - ✅ `sys sudo chmod +x /dev/thing`
-  - (Stay tuned for more convenient features) 
+  - ❌ `sudo chmod +x /dev/thing`
 - Note 2: Picking a home directory
   - Using `/tmp/somewhere/your_proj_name` like the examples is fine, but (if it works for your team) a more permanent path will help with startup time/caching. Sidenote, I'm working on a way to support relative paths and faster start times.
 - Note 3: Bulky Examples
