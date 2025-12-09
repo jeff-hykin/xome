@@ -429,6 +429,17 @@ All three of the following "THIS NUMBER" need to match:
 }
 ```
 
+### 3. Get Complete Purity (no rc or ENV vars)
+
+I've still run into cases were even having a separate home is not enough.
+
+To run with absolute purity, run this instead of `nix develop`:
+
+```bash
+nix develop --ignore-environment --command bash --norc --noprofile 
+```
+
+If the codebase still has "works on my machine" problems, then something absolutely crazy is going on.
 
 <!--
 todo
