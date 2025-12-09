@@ -185,8 +185,16 @@
                                 unset current_target
                                 echo 'PATH="$XOME_REAL_PATH" HOME="$XOME_REAL_HOME" "$@"' > "$HOME/.local/bin/sys"
                                 chmod +x "$HOME/.local/bin/sys"
-                                # note: the grep is to remove common startup noise
-                                USER="default" HOME=${lib.escapeShellArg homePath} ${home.activationPackage.out}/activate 2>&1 | ${interallyUsedPkgs2.gnugrep}/bin/grep -v -E "Starting Home Manager activation|warning: unknown experimental feature 'repl-flake'|Activating checkFilesChanged|Activating checkLinkTargets|Activating writeBoundary|No change so reusing latest profile generation|Activating installPackages|warning: unknown experimental feature 'repl-flake'|replacing old 'home-manager-path'|installing 'home-manager-path'|Activating linkGeneration|Cleaning up orphan links from .*|Creating home file links in .*|Activating onFilesChange|Activating setupLaunchAgents"
+                                
+                                # this happens when the user uses --ignore-environment
+                                if [ -z "$(printenv TERM)" ]; then
+                                    export TERM="xterm-256color"
+                                fi
+                                # these are needed for starship and other terminal prompts (this basically only matters when --ignore-environment is set)
+                                export LANG="''${LANG:=en_US.UTF-8}"
+                                export LOGNAME="''${LOGNAME:=default}"
+                                export SIZE="''${SIZE:=size}"
+                                USER="default" HOME=${lib.escapeShellArg homePath} PATH=${lib.escapeShellArg "${pkgs.nix}/bin/:${interallyUsedPkgs2.coreutils}/bin"} ${home.activationPackage.out}/activate 2>&1 | ${interallyUsedPkgs2.gnugrep}/bin/grep -v -E "Starting Home Manager activation|warning: unknown experimental feature 'repl-flake'|Activating checkFilesChanged|Activating checkLinkTargets|Activating writeBoundary|No change so reusing latest profile generation|Activating installPackages|warning: unknown experimental feature 'repl-flake'|replacing old 'home-manager-path'|installing 'home-manager-path'|Activating linkGeneration|Cleaning up orphan links from .*|Creating home file links in .*|Activating onFilesChange|Activating setupLaunchAgents"
                                 ${mainCommand}
                                 exit $?
                             '';
