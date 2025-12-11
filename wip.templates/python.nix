@@ -93,6 +93,8 @@
                                 
                                 # most people expect comments in their shell to to work
                                 setopt interactivecomments
+                                # fix emoji prompt offset issues (this shouldn't lock people into English b/c LANG can be non-english)
+                                export LC_CTYPE=en_US.UTF-8
                                 
                                 #
                                 # venv

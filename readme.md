@@ -436,6 +436,8 @@ I've still run into cases were even having a separate home is not enough.
 To run with absolute purity, run this instead of `nix develop`:
 
 ```bash
+nix develop --command bash --norc --noprofile 
+# really extreme: (will cause SSL certificate errors if trying to fetch basically anything)
 nix develop --ignore-environment --command bash --norc --noprofile 
 ```
 
